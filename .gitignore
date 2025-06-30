@@ -1,0 +1,14 @@
+dataset/*
+outputs/*
+.csv
+.tex
+.pdf
+.png
+.jpg
+.jpeg
+.gif
+.bmp
+.tiff
+.ico
+
+*.pyc
