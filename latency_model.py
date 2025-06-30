@@ -6,14 +6,9 @@ prefill_coeffs = {
     'DSR1-Qwen-14B': {'a': 1.233003335291953e-06, 'b': 0.0005304540126753786, 'c': 0.18858145785250313}
 }
 
-decode_coeffs = {'DSR1-Qwen-1.5B': {'m': -1.6973069262930655e-06, 'n': 0.028776851933768718}, 
-                 'DSR1-Llama-8B': {'m': 2.838752634710301e-07, 'n': 0.09292941860587282}, 
-                'DSR1-Qwen-14B': {'m': 6.460185375534166e-08, 'n': 0.18595344002532865}}
-
-decode_coeffs = {'DSR1-Qwen-14B': {'m': 6.460185375534166e-08, 'n': 0.18595344002532865}, 
-                 'DSR1-Qwen-1.5B': {'m': 1.496488595602221e-07, 'n': 0.023635947648587594}, 
-                 'DSR1-Llama-8B': {'m': 6.570033090550273e-07, 'n': 0.10051350928523411}}
-
+decode_coeffs = {'DSR1-Qwen-1.5B': {'m': 1.4968086938621786e-07, 'n': 0.023633865754453625}, 
+                 'DSR1-Llama-8B': {'m': 6.920219504432032e-07, 'n': 0.10038429572372025}, 
+                 'DSR1-Qwen-14B': {'m': 1.1301658358203775e-06, 'n': 0.18655369142562853}}
 
 def decode_func(m, n, I, O):
     """
@@ -47,9 +42,8 @@ if __name__ == "__main__":
     input_length = 116
     output_length = 82
 
-    print(f"{'Model':<20} {'Prefill':<10} {'Decode':<10} {'Total':<10}")
-    print("-" * 50)
-    
-    for model_name in prefill_coeffs.keys():
-        prefill_lat, decode_lat, total_lat = total_latency_model(model_name, input_length, output_length)
-        print(f"{model_name:<20} {prefill_lat:<10.2f} {decode_lat:<10.2f} {total_lat:<10.2f}")
+    for model_name, coeffs in prefill_coeffs.items():
+        print(f'{model_name}:')
+        print(prefill_latency_model(model_name, input_length))
+        print(decode_latency_model(model_name, input_length, output_length))
+        print(total_latency_model(model_name, input_length, output_length))
