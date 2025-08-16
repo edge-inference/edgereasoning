@@ -39,8 +39,8 @@ def total_latency_model(model_name, input_length, output_length):
 
 
 if __name__ == "__main__":
-    input_length = 116
-    output_length = 82
+    input_length = 512
+    output_length = 1
 
     for model_name, coeffs in prefill_coeffs.items():
         print(f'{model_name}:')

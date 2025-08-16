@@ -66,6 +66,9 @@ def decode_power_model(model_name, output_length):
     DSR1-Qwen-1.5B:  P(tok) = 2.6906630031738046*ln(tok) + 2.4464267515923543  
     DSR1-Qwen-14B:   P(tok) = 0.9246232482387127*ln(tok) + 21.506100020426842
     """
+    if output_length <= 0:
+        return 0.0
+
     coeffs = decode_power_coeffs[model_name]
     power = coeffs['a'] * math.log(output_length) + coeffs['b']
     return max(0.0, power)
