@@ -1,4 +1,5 @@
 import numpy as np
+import argparse
 
 prefill_coeffs = {
     'DSR1-Qwen-1.5B': {'a': 1.5635548753756998e-07, 'b': 2.309554283403154e-06, 'c': 0.04598102600399947},
@@ -39,11 +40,30 @@ def total_latency_model(model_name, input_length, output_length):
 
 
 if __name__ == "__main__":
-    input_length = 512
-    output_length = 1
+    def _cli():
+        parser = argparse.ArgumentParser(description="Latency model – shows prefill, decode, total latency for each model.")
+        parser.add_argument("-i", "--input", type=int, default=512, help="Input tokens (prefill length). Default: 512")
+        parser.add_argument("-o", "--output", type=int, default=1, help="Output tokens (decode length). Default: 1")
+        return parser.parse_args()
 
-    for model_name, coeffs in prefill_coeffs.items():
-        print(f'{model_name}:')
-        print(prefill_latency_model(model_name, input_length))
-        print(decode_latency_model(model_name, input_length, output_length))
-        print(total_latency_model(model_name, input_length, output_length))
+    def _format_time(seconds: float) -> str:
+        if seconds < 1e-3:
+            return f"{seconds*1e6:.0f}µs"
+        if seconds < 1.0:
+            return f"{seconds*1e3:.1f}ms"
+        return f"{seconds:.3f}s"
+
+    args = _cli()
+    I = args.input
+    O = args.output
+
+    header = f"{'Model':<20} {'Prefill':<12} {'Decode':<12} {'Total':<12}"
+    print("=" * len(header))
+    print(header)
+    print("-" * len(header))
+
+    for model_name in prefill_coeffs.keys():
+        prefill_lat, decode_lat, total_lat = total_latency_model(model_name, I, O)
+        print(f"{model_name:<20} {_format_time(prefill_lat):<12} {_format_time(decode_lat):<12} {_format_time(total_lat):<12}")
+
+    print("=" * len(header))
