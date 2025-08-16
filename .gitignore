@@ -12,5 +12,4 @@ outputs/*
 .ico
 
 *.pyc
-
-venv/
+venv/*

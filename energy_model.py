@@ -1,6 +1,7 @@
 import latency_model
 import power_model
 import math
+import argparse
 
 #Original decode fitting (validation)
 decode_energy_coeffs = {
@@ -11,9 +12,9 @@ decode_energy_coeffs = {
 
 # Original prefill fitting (validation)
 prefill_energy_coeffs = {
-    'DSR1-Llama-8B': {'linear': 0.00, 'constant': 17.57},
-    'DSR1-Qwen-1.5B': {'cubic': 0.00, 'quadratic': 0.00, 'linear': -0.01, 'constant': 15.50},
-    'DSR1-Qwen-14B': {'exp_coeff': 3260.06, 'exp_rate': -0.01, 'constant': 61.67}
+    'DSR1-Llama-8B': {'linear': 4.131263088291703e-06, 'constant': 0.017569106343149676},
+    'DSR1-Qwen-1.5B': {'quadratic': 2e-9, 'linear': -1e-5, 'constant': 0.0151},
+    'DSR1-Qwen-14B': {'exp_coeff': 3.260064334788192, 'exp_rate': -0.012940691920715262, 'constant': 0.061665552717004045}
 }
 
 def calculate_energy_from_power_time(model_name, input_length, output_length):
@@ -32,21 +33,52 @@ def calculate_energy_from_power_time(model_name, input_length, output_length):
     return prefill_energy, decode_energy, total_energy
 
 def prefill_energy_formula(model_name, input_length):
-    """Original energy per token formulas """
+    """Return TOTAL prefill energy in joules using the *direct* curve.
+
+    The coefficient tables now store energy *per token* directly in **joules**. Steps:
+      1. Pad the input length exactly like `prefill_latency_model` (multiple of 128).
+      2. Evaluate the per-token energy curve (already in J/token).
+      3. Multiply by the padded token count to obtain total energy (J).
+    """
     coeffs = prefill_energy_coeffs[model_name]
-    
+
+    # ➊ Align with latency model padding
+    padded_len = ((input_length + 127) // 128) * 128
+
+    # ➋ Energy per token (J) – formula depends on model
     if model_name == 'DSR1-Llama-8B':
-        return coeffs['linear'] * input_length + coeffs['constant']
+        e_pt_j = coeffs['linear'] * padded_len + coeffs['constant']
     elif model_name == 'DSR1-Qwen-1.5B':
-        x = input_length
-        return coeffs['cubic'] * x**3 + coeffs['quadratic'] * x**2 + coeffs['linear'] * x + coeffs['constant']
+        x = padded_len
+        e_pt_j = (
+            coeffs['quadratic'] * x**2 +
+            coeffs['linear'] * x +
+            coeffs['constant']
+        )
     elif model_name == 'DSR1-Qwen-14B':
-        return coeffs['exp_coeff'] * math.exp(coeffs['exp_rate'] * input_length) + coeffs['constant']
+        e_pt_j = coeffs['exp_coeff'] * math.exp(coeffs['exp_rate'] * padded_len) + coeffs['constant']
+    else:
+        raise ValueError(f"Unsupported model: {model_name}")
+
+    # ➌ Scale by tokens to get total energy (J)
+    energy_total_j = max(0.0, e_pt_j * padded_len)
+    return energy_total_j
+
 
 def decode_energy_formula(model_name, output_length):
-    """Original energy per token formulas """
+    """Return TOTAL decode energy in joules.
+
+    The stored coefficients provide per-token energy in joules following a log curve. We
+    multiply by the output-token count to obtain total energy.
+    """
     coeffs = decode_energy_coeffs[model_name]
-    return coeffs['a'] * math.log(output_length) + coeffs['b']
+
+    # ➊ Per-token energy (J)
+    e_pt_j = coeffs['a'] * math.log(max(output_length, 1)) + coeffs['b']
+
+    # ➋ Total energy in joules
+    energy_total_j = max(0.0, e_pt_j * output_length)
+    return energy_total_j
 
 def total_energy_model(model_name, input_length, output_length, validate=False):
     # Primary method: Power × Time
@@ -76,33 +108,47 @@ def total_energy_model(model_name, input_length, output_length, validate=False):
     
     return prefill_energy_pt, decode_energy_pt, total_energy_pt
 
+def _cli():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Energy-model demo: calculates prefill / decode / total Joules for each model.")
+    parser.add_argument("-i", "--input", type=int, default=116,
+                        help="Input tokens (prefill length). Default: 116")
+    parser.add_argument("-o", "--output", type=int, default=82,
+                        help="Output tokens (decode length). Default: 82")
+    parser.add_argument("-v", "--validate", action="store_true",
+                        help="Also print direct-formula cross-validation.")
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    input_length = 116
-    output_length = 82
+    args = _cli()
+    input_length = args.input
+    output_length = args.output
 
     print("="*65)
     print("🔋 ENERGY MODEL RESULTS (Power × Time Method)")
     print("="*65)
     print(f"{'Model':<20} {'Prefill Energy':<15} {'Decode Energy':<15} {'Total Energy':<15}")
     print("-" * 65)
-    
+
     for model_name in power_model.prefill_power_coeffs.keys():
         prefill_eng, decode_eng, total_eng = total_energy_model(model_name, input_length, output_length)
         print(f"{model_name:<20} {prefill_eng:<15.2f} {decode_eng:<15.2f} {total_eng:<15.2f}")
-    
+
     print("\n" + "="*65)
     print("⚡ ENERGY BREAKDOWN (Joules)")
     print("="*65)
-    
+
     for model_name in power_model.prefill_power_coeffs.keys():
         prefill_eng, decode_eng, total_eng = total_energy_model(model_name, input_length, output_length)
-        prefill_pct = (prefill_eng / total_eng) * 100
-        decode_pct = (decode_eng / total_eng) * 100
+        prefill_pct = (prefill_eng / total_eng) * 100 if total_eng else 0
+        decode_pct = (decode_eng / total_eng) * 100 if total_eng else 0
         print(f"{model_name}: Prefill {prefill_pct:.1f}% | Decode {decode_pct:.1f}%")
-    
-    print("\n" + "="*65)
-    print("🔍 CROSS-VALIDATION: Power×Time vs Direct Formulas")
-    print("="*65)
-    
-    for model_name in power_model.prefill_power_coeffs.keys():
-        total_energy_model(model_name, input_length, output_length, validate=True) 
+
+    if args.validate:
+        print("\n" + "="*65)
+        print("🔍 CROSS-VALIDATION: Power×Time vs Direct Formulas")
+        print("="*65)
+        for model_name in power_model.prefill_power_coeffs.keys():
+            total_energy_model(model_name, input_length, output_length, validate=True) 
