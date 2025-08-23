@@ -1,5 +1,5 @@
 
-# Edge Reasoning Evaluation Framework
+# Edge Reasoning LLM Evaluation Framework
 
 ## Quick Setup
 
