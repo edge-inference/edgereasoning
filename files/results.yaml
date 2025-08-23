@@ -1,0 +1,122 @@
+# ===========================
+# Results Processing Configuration  
+# ===========================
+# Configuration for post-processing benchmark results
+
+# ===========================
+# Use Existing Results
+# ===========================
+existing_results:
+  synthetic:
+    prefill:
+      input_dir: "data/synthetic/gpu/prefill/"
+      expected_models: ["1.5B", "8B", "14B"]
+      
+    cpu_decode_synthetic:
+      name: "cpu_decode_synthetic"
+      description: "CPU Decode with synthetic Dataset"
+      input_dir: "data/synthetic/cpu/decode/"
+      output_dir: "data/synthetic/cpu/decode/processed_results/"
+      
+    gpu_decode_synthetic:
+      name: "gpu_decode_synthetic"
+      description: "GPU Decode With Synthetic Dataset"
+      input_dir: "data/synthetic/gpu/decode/fine/"
+      output_dir: "data/synthetic/gpu/decode/fine/processed_results/"
+      
+    gpu_scaling:
+      name: "scaling"
+      description: "GPU Scaling Dataset using synthetic"
+      input_dir: "data/synthetic/gpu/scaling/"
+      output_dir: "data/synthetic/gpu/scaling/processed_results/"
+      
+  mmlu:
+    # MMLU Results - CPU (Tegra)
+    cpu_decode_mmlu:
+      name: "cpu_decode_mmlu"
+      description: "CPU Decode with MMLU Dataset"
+      input_dir: "data/mmlu/cpu/decodeall/"
+      output_dir: "data/mmlu/cpu/decodeall/processed_results/"
+      
+    # MMLU Results - GPU (Tegra)
+    gpu_decode_mmlu:
+      name: "gpu_decode_mmlu"
+      description: "GPU Decode With All MMLU Dataset"
+      input_dir: "data/mmlu/gpu/decodeall/"
+      output_dir: "data/mmlu/gpu/decodeall/processed_results/"
+      
+    # MMLU Results - Server
+    server_mmlu:
+      name: "server_mmlu"
+      description: "Server MMLU Evaluation Results"
+      input_dir: "data/mmlu/server/"
+      output_dir: "data/mmlu/server/processed_results/"
+      
+  planner:
+    # Planner Results - Server
+    server_planner:
+      name: "server_planner"
+      description: "Server Planner Evaluation Results"
+      input_dir: "data/planner/server/"
+      output_dir: "data/planner/server/processed_results/"
+
+# ===========================
+# New Results Output
+# ===========================
+results:
+  base_dir: "data/"
+  
+  synthetic:
+    prefill:
+      input_dir: "data/synthetic/gpu/prefill/"
+      output_dir: "data/synthetic/gpu/prefill/processed/"
+      
+    decode:
+      input_dir: "data/synthetic/gpu/decode/fine/"
+      output_dir: "data/synthetic/gpu/decode/fine/processed/"
+      
+    scaling:
+      input_dir: "data/synthetic/gpu/scaling/"
+      output_dir: "data/synthetic/gpu/scaling/processed/"
+      
+  mmlu:
+    server:
+      input_dir: "data/mmlu/server/"
+      output_dir: "data/mmlu/server/processed/"
+      model_specific: true
+    tegra:
+      input_dir: "data/mmlu/tegra/"
+      output_dir: "data/mmlu/tegra/processed/"
+      
+  planner:
+    server:
+      input_dir: "data/planner/server/"
+      output_dir: "data/planner/server/processed/"
+    
+  aime:
+    input_dir: "data/aime/"
+    output_dir: "data/aime/processed/"
+
+# ===========================
+# Model Name Mapping
+# ===========================
+model_names:
+  "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B": "DSR1-Qwen-1.5B"
+  "deepseek-ai/DeepSeek-R1-Distill-Llama-8B": "DSR1-Llama-8B"
+  "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B": "DSR1-Qwen-14B"
+
+# ===========================
+# Processing Settings
+# ===========================
+processing:
+  default_analysis: false
+  default_consolidate_only: false
+  
+  prefill:
+    expected_models: ["1.5B", "8B", "14B"]
+    
+  decode:
+    analysis_metrics: ["latency", "power", "energy"]
+    
+  scaling:
+    scaling_factors: [1, 2, 4, 8]

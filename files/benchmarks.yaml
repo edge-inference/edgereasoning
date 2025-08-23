@@ -1,0 +1,110 @@
+# ===========================
+# Benchmark Configuration
+# ===========================
+# Centralized configuration for benchmark locations, datasets, and settings
+
+# ===========================
+# Benchmark Directories
+# ===========================
+benchmark_dirs:
+  root: "benchmarks/"
+  synthetic: "benchmarks/synthetic/"
+  mmlu: "benchmarks/MMLU/"
+  aime: "benchmarks/AIME/"
+  agentic_planner: "benchmarks/agentic_planner/"
+
+# ===========================
+# Dataset Paths
+# ===========================
+datasets:
+  synthetic:
+    prefill:
+      qwen: "benchmarks/synthetic/prefill/synthetic_qwen.csv"
+      llama: "benchmarks/synthetic/prefill/synthetic_llama.csv"
+    decode:
+      qwen: "benchmarks/synthetic/decode/synthetic_qwen.csv"
+      llama: "benchmarks/synthetic/decode/synthetic_llama.csv"
+    
+  mmlu:
+    # Loaded directly via HuggingFace datasets
+    
+  aime:
+    problems: "benchmarks/AIME/problems.json"
+    solutions: "benchmarks/AIME/solutions.json"
+    
+  agentic_planner:
+    natural_plan: "benchmarks/agentic_planner/eval/"
+    patches: "benchmarks/agentic_planner/PATCHES/"
+
+# ===========================
+# Model Family Configuration
+# ===========================
+model_families:
+  qwen:
+    indicators: ["qwen", "Qwen", "QWEN"]
+    synthetic_dataset: "qwen"
+    default_config: "configs/qwen_scale.yaml"
+    
+  llama:
+    indicators: ["llama", "Llama", "LLAMA"]
+    synthetic_dataset: "llama" 
+    default_config: "configs/llama_scale.yaml"
+    
+  deepseek:
+    indicators: ["deepseek", "DeepSeek", "DEEPSEEK"]
+    synthetic_dataset: "qwen" 
+    default_config: "configs/deepseek_scale.yaml"
+
+# ===========================
+# Benchmark-Specific Settings
+# ===========================
+synthetic:
+  default_input_tokens: 384
+  available_input_tokens: [128, 256, 384, 512, 768, 1024, 1536, 2048]
+  default_samples: 5
+  
+mmlu:
+  all_subjects: true
+  parallel_evaluation: false
+  default_samples: 3
+  
+aime:
+  difficulty_levels: ["easy", "medium", "hard"]
+  time_limit_minutes: 45
+  default_samples: 1
+  
+agentic_planner:
+  tasks: ["meeting_planning", "trip_planning", "calendar_scheduling"]
+  upstream_repo: "https://github.com/google-deepmind/natural-plan.git"
+  pin_commit: "main"
+
+# ===========================
+# Output Configuration
+# ===========================
+outputs:
+  base_dir: "data/"
+  timestamp_format: "%Y%m%d_%H%M%S"
+  subdirs:
+    synthetic: "synthetic/"
+    mmlu: "mmlu/"
+    aime: "aime/"
+    agentic: "planner/"
+
+# ===========================
+# Default Evaluation Settings
+# ===========================
+evaluation:
+  default_configs:
+    server: "eval/server/mmlu/configs/base.yaml"
+    tegra: "eval/tegra/mmlu/configs/base.yaml"
+  default_seed: 42
+  default_temperature: 0.1
+  default_max_tokens: 512
+  
+  # Scaling-specific settings
+  scaling:
+    min_samples: 1
+    max_samples: 32
+    default_samples: 8
+    majority_voting: true
+    confidence_threshold: 0.6

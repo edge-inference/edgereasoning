@@ -1,0 +1,23 @@
+diff --git a/evaluate_meeting_planning.py b/eval/evaluate_meeting_planning.py
+index 27009ad..4df72f0 100644
+--- a/evaluate_meeting_planning.py
++++ b/eval/evaluate_meeting_planning.py
+@@ -35,7 +35,17 @@ NUM_SAMPLES_PER_CONSTRAINTS = 100
+ 
+ 
+ def convert_to_time_obj(time_str: str):
+-  return datetime.datetime.strptime(time_str, "%I:%M%p")
++  """Convert a time string to a datetime object.
++  """
++  clean = time_str.replace(" ", "")  # e.g. '9:15 AM' -> '9:15AM'
++  try:
++    return datetime.datetime.strptime(clean, "%I:%M%p")
++  except ValueError:
++    # Fallback: allow times without minutes like '9AM'
++    try:
++      return datetime.datetime.strptime(clean, "%I%p")
++    except ValueError:
++      raise
+ 
+ 
+ def process_constraints(data: tuple[Any, ...]):

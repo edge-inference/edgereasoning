@@ -1,0 +1,125 @@
+# Analytical Models Configurations for LLM Energy/Power/Latency modeling
+
+# ===========================
+# Model Settings
+# ===========================
+models:
+  supported_models:
+    - DSR1-Llama-8B
+    - DSR1-Qwen-1.5B  
+    - DSR1-Qwen-14B
+
+# ===========================
+# Token Length Configurations
+# ===========================
+token_ranges:
+  llama:
+    input_tokens: [256, 384, 512, 640, 768, 896, 1024, 1152] 
+    output_tokens: [1, 16, 32, 64, 96, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920, 2048, 2176]
+  
+  qwen:
+    input_tokens: [128, 256, 384, 512, 640, 768, 896, 1024, 1152]  
+    output_tokens: [1, 16, 32, 64, 96, 128, 256, 384, 512, 640, 768, 896, 1024, 1152, 1280, 1408, 1536, 1664, 1792, 1920, 2048, 2176]
+
+# ===========================
+# Model Thresholds & Switches
+# ===========================
+thresholds:
+  exponential_model_switch: 65  # Use exponential model for output_tokens >= this threshold
+  
+# ===========================
+# File Paths
+# ===========================
+data_files:
+  prefill_validation: "validation/prefill.json"
+  decode_validation: "validation/decode.json" 
+  exponential_parameters: "validation/decode_parameters.json"
+
+# ===========================
+# Model Name Mappings
+# ===========================
+name_mappings:
+  # Maps internal model names to JSON file keys
+  prefill_validation:
+    DSR1-Llama-8B: "DeepSeek_R1_Distill_Llama_8B"
+    DSR1-Qwen-1.5B: "DeepSeek_R1_Distill_Qwen_1.5B"
+    DSR1-Qwen-14B: "DeepSeek_R1_Distill_Qwen_14B"
+  
+  exponential_parameters:
+    DSR1-Llama-8B: "DeepSeek-R1-Distill-Llama-8B"
+    DSR1-Qwen-1.5B: "DeepSeek-R1-Distill-Qwen-1.5B"
+    DSR1-Qwen-14B: "DeepSeek-R1-Distill-Qwen-14B"
+
+# ===========================
+# Power Model Coefficients
+# ===========================
+power_coefficients:
+  prefill:
+    DSR1-Llama-8B:
+      type: "piecewise_log"
+      threshold: 800
+      constant: 5.6577142857142855
+      a: 9.337806581499883
+      b: -52.218272155944696
+    
+    DSR1-Qwen-1.5B:
+      type: "linear"
+      slope: 6.68749014794967e-05
+      intercept: 5.499357133701591
+    
+    DSR1-Qwen-14B:
+      type: "piecewise_log"
+      threshold: 800
+      constant: 10.258142857142857
+      a: 8.772487572371094
+      b: -40.77528971889581
+
+  decode:
+    DSR1-Llama-8B:
+      a: 2.701709095219641
+      b: 8.806744003175773
+    
+    DSR1-Qwen-1.5B:
+      a: 3.2137108442982796
+      b: 0.7565375896390953
+    
+    DSR1-Qwen-14B:
+      a: 1.6193869347921934
+      b: 16.88683031734797
+
+# ===========================
+# Energy Model Coefficients  
+# ===========================
+energy_coefficients:
+  prefill:
+    # Exponential energy formula coefficients - actively used for prefill energy calculation
+    DSR1-Llama-8B:
+      exp_coeff: 0.2037618596417348
+      exp_rate: -0.14845175210587422
+      constant: 0.01900406658131384
+    
+    DSR1-Qwen-1.5B:
+      exp_coeff: 0.07308412448027113
+      exp_rate: -0.03194527903289569
+      constant: 0.0009231594757018509
+    
+    DSR1-Qwen-14B:
+      exp_coeff: 0.37083300132252434
+      exp_rate: -0.15331526827621197
+      constant: 0.042684758270411835
+
+  decode:
+    # Fallback for direct energy formula: E = a * log(output_tokens) + b used for output_tokens < 65 which tend to have constant decode power
+    # Fit functions obtained from processing data for Figure 5b in the EdgeReasoning paper
+    # Used only as fallback - primary method uses avg power from decode_parameters.json
+    DSR1-Llama-8B:
+      a: 0.36020172582303456
+      b: -0.7332220802324294
+    
+    DSR1-Qwen-1.5B:
+      a: 0.08044834041630787
+      b: -0.16315478783896187
+    
+    DSR1-Qwen-14B:
+      a: 0.6869187255242557
+      b: -1.4007777417523335

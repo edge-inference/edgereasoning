@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Sweep I/O and see
+Sweep I/O and and plot the prediceted results
 
 """
 
@@ -163,20 +163,19 @@ def plot_decode_analysis(data):
     plt.tight_layout()
     plt.savefig('outputs/decode_analysis.pdf', dpi=300, bbox_inches='tight')
     plt.show()
-    print("📊 Decode plots >>>'outputs/decode_analysis.pdf'")
-
+    print("[*] Decode plots saved to 'outputs/decode_analysis.pdf'")
 
 
 def print_summary_stats(data):
 
     print("\n" + "="*80)
-    print("📈 Stats (Input: 128-4096 tokens, Output: 200 tokens)")
+    print("[*] Stats (Input: 128-4096 tokens, Output: 200 tokens)")
     print("="*80)
     
     models = list(data.keys())
     
     for model in models:
-        print(f"\n🔸 {model}:")
+        print(f"\n- {model}:")
         
         # Latency stats
         min_latency = min(data[model]['total_latency'])
@@ -194,7 +193,6 @@ def print_summary_stats(data):
         max_energy = max(data[model]['total_energy'])
         print(f"   Energy Range: {min_energy:.2f}J - {max_energy:.2f}J")
         
-        # Input speed range
         total_tokens = np.array(data[model]['prefill_tokens'])
         throughput = total_tokens / np.array(data[model]['prefill_latency'])
         min_throughput = np.min(throughput)
@@ -211,14 +209,14 @@ if __name__ == "__main__":
     print("Fixed decode tokens: 200")
     
     data = generate_sweep_data()
-    print("✅ Data generation complete")
+    print("[v] Data generation complete")
     
-    print("\n📊 Generating plots...")
+    print("\n[*] Generating plots...")
     plot_prefill_analysis(data)
     plot_decode_analysis(data)
     
     print_summary_stats(data)
     
-    print("\n🎉 Analysis complete! Generated PDF files:")
-    print("   📄 outputs/prefill_analysis.pdf")
-    print("   📄 outputs/decode_analysis.pdf") 
+    print("\n[v] Analysis complete! Generated PDF files:")
+    print("   - outputs/prefill_analysis.pdf")
+    print("   - outputs/decode_analysis.pdf") 

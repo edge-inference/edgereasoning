@@ -1,0 +1,49 @@
+# Base Evaluation Configuration
+# 4096 token reasoning evaluation with comprehensive analysis
+
+name: "base"
+description: "Full reasoning evaluation with 4096 token limit"
+
+# Model settings
+model:
+  max_tokens: 4096
+  max_model_len: 4096
+  temperature: 0.6
+  top_p: 0.95
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.60
+  enable_metrics: true
+  vllm_version: "0.9.1" 
+
+# Evaluation settings
+evaluation:
+  num_questions: null  
+  batch_size: 1  
+  shuffle_questions: false
+  
+# Prompting strategy
+prompting:
+  template_type: "reasoning"  
+  system_prompt: |
+    You are an expert at solving multiple-choice questions. 
+    Analyze the question carefully, think through the problem step by step, 
+    and provide your reasoning before selecting the best answer.
+    Format your final answer clearly as: "The answer is [X]" where X is A, B, C, or D.
+  
+  user_template: |
+    Question: {question}
+    
+    Choices:
+    A) {choice_a}
+    B) {choice_b}
+    C) {choice_c}
+    D) {choice_d}
+    
+    Please analyze this question step by step and provide your reasoning before selecting the best answer.
+
+# Output settings
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true
+  generate_summary_report: true

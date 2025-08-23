@@ -12,5 +12,15 @@ outputs/*
 .ico
 
 *.pyc
-venv
-venv/*
+*.csv
+.github
+
+.venv/
+venv/
+benchmarks/agentic_planner/eval/
+benchmarks/agentic_planner/results/
+data/*/*
+third_party
+outputs
+synch.sh
+*.log

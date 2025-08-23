@@ -1,0 +1,38 @@
+name: "np_scaling"
+description: "Test-time scaling Natural-Plan evaluation with multiple samples"
+
+model:
+  max_tokens: 512         
+  max_model_len: 13312      
+  temperature: 0.7          
+  top_p: 0.9
+  top_k: 50
+  seed: 42
+  stop_sequences: ["<|im_end|>", "<|endoftext|>", "</s>"]
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.9
+
+evaluation:
+  num_questions: null
+  start_question: null  
+  end_question: null
+  batch_size: 1
+  compute_metrics: true
+
+# Test-time scaling configuration  
+scaling:
+  num_samples: 8            
+  sampling_strategy: "parallel"  
+  consensus_method: "majority_vote"  
+  min_agreement_threshold: 0.5  # Simple majority
+
+prompting:
+  system_prompt: "Be concise and direct. You must limit your answer to exactly 256 tokens or fewer."
+  user_template: "TOKEN BUDGET: 256 tokens maximum\n\n{prompt}\n\nRemember: Stay within 256 tokens total."
+
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true
+  save_scaling_analysis: true
+  save_consensus_details: true

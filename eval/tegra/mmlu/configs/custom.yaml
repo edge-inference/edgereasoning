@@ -1,0 +1,33 @@
+# Synthetic 1-token Evaluation Configuration
+# Minimal prompt for true 1-token input
+
+name: "synthetic_1tok"
+description: "Synthetic 1-token input evaluation with no prompt template."
+
+# Model settings
+model:
+  max_tokens: 1024
+  max_model_len: 4194
+  temperature: 0.6
+  top_p: 0.95
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.60
+
+# Evaluation settings
+evaluation:
+  num_questions: null  
+  batch_size: 1  
+  shuffle_questions: false
+  
+# Prompting strategy
+prompting:
+  template_type: "none"  
+  system_prompt: ""
+  user_template: "{question}"
+
+# Output settings
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true
+  generate_summary_report: true

@@ -1,0 +1,35 @@
+# Base Evaluation Configuration
+# 4096 token reasoning evaluation with comprehensive analysis
+
+name: "base"
+description: "Full reasoning evaluation with 4096 token limit"
+
+# Model settings
+model:
+  max_tokens: 1
+  max_model_len: 4194
+  temperature: 0.6
+  top_p: 0.95
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.60
+  enforce_eager: false
+
+# Evaluation settings
+evaluation:
+  num_questions: null  
+  batch_size: 1  
+  shuffle_questions: false
+  
+# Prompting strategy
+prompting:
+  template_type: "reasoning"  
+  system_prompt: ""
+  user_template: "{question}"
+  
+
+# Output settings
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true
+  generate_summary_report: true

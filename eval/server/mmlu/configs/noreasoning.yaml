@@ -1,0 +1,47 @@
+# NoReasoning Evaluation Configuration
+# 4096 token direct answer evaluation without reasoning
+
+name: "noreasoning"
+description: "Direct answer evaluation without explicit reasoning steps"
+
+# Model settings
+model:
+  max_tokens: 4096
+  max_model_len: 1024 
+  temperature: 0.6
+  top_p: 0.95
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.85
+  enable_metrics: true
+  vllm_version: "0.9.1" 
+
+# Evaluation settings
+evaluation:
+  num_questions: null  
+  batch_size: 1 
+  shuffle_questions: false
+  
+# Prompting strategy
+prompting:
+  template_type: "direct"  
+  system_prompt: |
+    You are an expert at solving multiple-choice questions.
+    Read the question and select the best answer directly.
+    Provide your answer in the format: "The answer is [X]" where X is A, B, C, or D.
+  
+  user_template: |
+    {question}
+    
+    A) {choice_a}
+    B) {choice_b}
+    C) {choice_c} 
+    D) {choice_d}
+    
+    Answer:
+
+# Output settings
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true
+  generate_summary_report: true

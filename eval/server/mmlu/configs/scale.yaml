@@ -1,0 +1,62 @@
+# Scale Evaluation Configuration
+# Test-time scaling with majority voting
+
+name: "scale"
+description: "TT-scaling with majority voting"
+
+# Model settings
+model:
+  max_tokens: 128
+  max_model_len: 4096
+  temperature: 0.6
+  top_p: 0.9
+  top_k: 50
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.75
+  repetition_penalty: 1.1
+  enable_metrics: true
+  vllm_version: "0.9.1" 
+
+# Evaluation settings
+evaluation:
+  num_questions: null
+  batch_size: 1
+  shuffle_questions: false
+  
+# Scaling settings
+scaling:
+  num_samples: 64 
+  min_new_tokens: 128
+  max_new_tokens: 128
+  do_sample: true
+  
+# Prompting strategy
+prompting:
+  template_type: "scaling"
+  system_prompt: |
+    You are an expert at solving multiple-choice questions.
+    Choose the single best answer and provide only the letter of the correct answer.
+    Be concise and direct in your response.
+    
+  user_template: |
+    Choose the single best answer (A, B, C, or D) for the following question:
+
+    Question: {question}
+
+    Choices:
+    A) {choice_a}
+    B) {choice_b}
+    C) {choice_c}
+    D) {choice_d}
+
+    Please limit your answer to at most MAX_TOKENS_PLACEHOLDER tokens.
+    Concisely, provide only the letter of the correct answer in the format:
+    Answer: <A/B/C/D>
+
+# Output settings
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true
+  generate_summary_report: true
+  save_sample_details: true  

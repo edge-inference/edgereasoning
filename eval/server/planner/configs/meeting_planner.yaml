@@ -1,0 +1,27 @@
+name: "np_meeting"
+description: "Natural-Plan Meeting-Planning evaluation"
+
+model:
+  max_tokens: 2048
+  max_model_len: 13312
+  temperature: 0.0
+  top_p: 0.9
+  stop_sequences: ["<|im_end|>", "<|endoftext|>", "</s>"]
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.9
+
+evaluation:
+  num_questions: null
+  start_question: 0
+  end_question: 1000
+  batch_size: 1
+  compute_metrics: false  
+
+prompting:
+  system_prompt: "You are an expert meeting planner. Provide the best plan in no more than 512 tokens."
+  user_template: "{prompt}\n\nPlease answer in at most 512 tokens."
+
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true 

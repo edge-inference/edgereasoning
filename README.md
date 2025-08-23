@@ -1,19 +1,50 @@
-# extract_io_length.py
+
+# Edge Reasoning Evaluation Framework
+
+## Quick Setup
+
 ```bash
-python extract_io_length.py
+make venv                    # Create virtual environment
+source .venv/bin/activate    # Activate environment  
+make setup                   # Auto-detect platform and install dependencies
 ```
 
-# plot_sweep.py  
+## Usage
+
+**Platform Detection:**
 ```bash
-python plot_sweep.py
+make platform               # Show detected platform
+make info                   # Show device information
 ```
 
-# interactive.py
+**Server Evaluations:**
 ```bash
-python interactive.py
+make server-mmlu            # MMLU benchmark
+make planner                # Planner evaluation
 ```
 
-# latency_model.py
+**Tegra Evaluations:**
 ```bash
-python latency_model.py
+make tegra-base             # Base MMLU evaluation
+make tegra-budget           # Budget evaluation
+make tegra-synthetic        # Synthetic benchmarks
+```
+
+**Individual Benchmarks:**
+```bash
+make prefill                # Prefill experiments (Tegra)
+make decode                 # Decode experiments (Tegra)
+```
+
+**Results:** All outputs saved to `data/` directory with timestamp subdirectories.
+
+**Help:** `make help` for all available targets.
+
+## Analytical Models
+
+```bash
+python extract_io_length.py    # Extract I/O length data
+python plot_sweep.py           # Generate sweep plots
+python interactive.py          # Interactive analysis
+python latency_model.py        # Latency modeling
 ```

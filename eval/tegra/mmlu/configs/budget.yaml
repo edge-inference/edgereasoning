@@ -1,0 +1,45 @@
+# Budget Evaluation Configuration  
+# 512 token efficient evaluation with minimal reasoning
+
+name: "budget"
+description: "Efficient evaluation with 512 token limit for resource-constrained scenarios"
+
+# Model settings
+model:
+  max_tokens: 128
+  max_model_len: 1024 
+  temperature: 0.6
+  top_p: 0.95
+  tensor_parallel_size: 1
+  gpu_memory_utilization: 0.55
+
+# Evaluation settings
+evaluation:
+  num_questions: null  
+  batch_size: 1  
+  shuffle_questions: false
+  
+# Prompting strategy
+prompting:
+  template_type: "budget"  
+  system_prompt: |
+    You are an expert at solving multiple-choice questions efficiently.
+    Provide a brief analysis and select the best answer.
+    Be concise but accurate. Please limit your answer to MAX_TOKENS_PLACEHOLDER tokens at most.
+    Format your final answer clearly as: "The answer is [X]" where X is A, B, C, or D.
+  
+  user_template: |
+    Question: {question}
+    A) {choice_a}
+    B) {choice_b}  
+    C) {choice_c}
+    D) {choice_d}
+    
+    Select the best answer.
+
+# Output settings
+output:
+  save_detailed_responses: true
+  save_timing_metrics: true
+  save_energy_metrics: true
+  generate_summary_report: true

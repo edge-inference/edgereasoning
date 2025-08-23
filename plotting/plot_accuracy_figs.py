@@ -346,7 +346,7 @@ def create_visualizations(df: pd.DataFrame, output_dir: str):
     plt.close()
 
 def main():
-    file_path = '/home/jennyhuang//edge_reasoning/full_mmlu/combined_stats.xlsx'
+    file_path = 'combined_stats.xlsx'
     try:
         df = load_dataframe(file_path, sheet_name='All_Stats')
     except FileNotFoundError:
