@@ -52,21 +52,61 @@ setup:
 		echo "ERROR: Python not found. Please install python3"; \
 		exit 1; \
 	fi
-	$(PYTHON) setup.py
+	@echo "[setup] Installing system dependencies..."
+	@bash scripts/install.sh || { echo "Failed to install system dependencies"; exit 1; }
+	@echo "[setup] Fetching third_party dependencies..."
+	@if [ -d "third_party/token2metrics/.git" ] || [ -d "third_party/token2metrics" ]; then \
+		echo "[setup] third_party/token2metrics exists - skipping fetch"; \
+	else \
+		bash scripts/fetch_token2metrics.sh || { echo "Failed to fetch token2metrics"; exit 1; }; \
+	fi
+	@echo "[setup] Fetching natural-plan benchmark..."
+	@if [ -d "benchmarks/agentic_planner/eval/.git" ] || [ -d "benchmarks/agentic_planner/eval" ]; then \
+		echo "[setup] benchmarks/agentic_planner/eval exists - skipping fetch"; \
+	else \
+		bash scripts/fetch_natural_planner.sh || { echo "Failed to fetch natural-plan"; exit 1; }; \
+	fi
+	$(PYTHON) scripts/bootstrap.py
 	@if [ "$(DETECTED_PLATFORM)" = "tegra" ]; then \
 		echo "Bootstrapping Tegra container via open.sh..."; \
 		cd eval/tegra && ./open.sh; \
 	fi
 
 setup-server:
-	$(PYTHON) setup.py --platform server
+	@echo "[setup-server] Installing system dependencies..."
+	@bash scripts/install.sh || { echo "Failed to install system dependencies"; exit 1; }
+	@echo "[setup-server] Fetching third_party dependencies..."
+	@if [ -d "third_party/token2metrics/.git" ] || [ -d "third_party/token2metrics" ]; then \
+		echo "[setup-server] third_party/token2metrics exists - skipping fetch"; \
+	else \
+		bash scripts/fetch_token2metrics.sh || { echo "Failed to fetch token2metrics"; exit 1; }; \
+	fi
+	@echo "[setup-server] Fetching natural-plan benchmark..."
+	@if [ -d "benchmarks/agentic_planner/eval/.git" ] || [ -d "benchmarks/agentic_planner/eval" ]; then \
+		echo "[setup-server] benchmarks/agentic_planner/eval exists - skipping fetch"; \
+	else \
+		bash scripts/fetch_natural_planner.sh || { echo "Failed to fetch natural-plan"; exit 1; }; \
+	fi
+	$(PYTHON) scripts/bootstrap.py --platform server
 
 setup-tegra:
-	$(PYTHON) setup.py --platform tegra
+	@echo "[setup-tegra] Fetching third_party dependencies..."
+	@if [ -d "third_party/token2metrics/.git" ] || [ -d "third_party/token2metrics" ]; then \
+		echo "[setup-tegra] third_party/token2metrics exists - skipping fetch"; \
+	else \
+		bash scripts/fetch_token2metrics.sh || { echo "Failed to fetch token2metrics"; exit 1; }; \
+	fi
+	@echo "[setup-tegra] Fetching natural-plan benchmark..."
+	@if [ -d "benchmarks/agentic_planner/eval/.git" ] || [ -d "benchmarks/agentic_planner/eval" ]; then \
+		echo "[setup-tegra] benchmarks/agentic_planner/eval exists - skipping fetch"; \
+	else \
+		bash scripts/fetch_natural_planner.sh || { echo "Failed to fetch natural-plan"; exit 1; }; \
+	fi
+	$(PYTHON) scripts/bootstrap.py --platform tegra
 	cd eval/tegra && ./open.sh
 
 info:
-	$(PYTHON) setup.py --info-only
+	$(PYTHON) scripts/bootstrap.py --info-only
 
 # === TEGRA EVALUATION TARGETS ===
 jetson:

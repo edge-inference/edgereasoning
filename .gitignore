@@ -20,7 +20,9 @@ venv/
 benchmarks/agentic_planner/eval/
 benchmarks/agentic_planner/results/
 data/*/*
-third_party
+third_party/token2metrics/
+third_party/token2metrics.egg-info/
+third_party/.git
 outputs
 synch.sh
 *.log

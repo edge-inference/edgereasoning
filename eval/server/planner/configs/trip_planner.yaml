@@ -3,7 +3,7 @@ description: "Natural-Plan Trip-Planning evaluation (1600 examples)"
 
 model:
   max_tokens: 2048
-  max_model_len: 5000
+  max_model_len: 4096
   temperature: 0.0  
   top_p: 0.9
   stop_sequences: ["<|im_end|>", "<|endoftext|>", "</s>"]

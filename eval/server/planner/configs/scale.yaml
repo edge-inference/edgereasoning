@@ -3,7 +3,7 @@ description: "Test-time scaling Natural-Plan evaluation with multiple samples"
 
 model:
   max_tokens: 512         
-  max_model_len: 13312      
+  max_model_len: 2048      
   temperature: 0.7          
   top_p: 0.9
   top_k: 50

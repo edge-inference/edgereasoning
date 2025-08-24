@@ -32,13 +32,11 @@ for i, budget in enumerate(token_budgets):
     subset = df[df["token_budget"] == budget]
     accuracies = [subset[subset["scaling_factor"] == sf]["accuracy"].values[0] for sf in scaling_factors]
     ax.bar(x + i * bar_width, accuracies, width=bar_width, 
-           label=f'Token Budget {budget}', color=colors[i]) # , hatch=patterns[i]
+           label=f'Token Budget {budget}', color=colors[i]) 
 
-# Add horizontal line
 ax.axhline(y=0.43, color='black', linestyle='-', linewidth=1)
 ax.text(0.6, 0.43, 'Sequential Scaling \n w/o Token Budget', va='bottom', ha='center', fontsize=10, color='black')
 
-# Final touches
 ax.set_xlabel('Parallel Scaling Factor')
 ax.set_ylabel('Accuracy')
 # ax.set_title('Accuracy vs. Parallel Scaling Factor by Token Budget')
@@ -60,11 +58,9 @@ pivot_df = pivot_df[sorted(pivot_df.columns)]  # Sort by scaling factor
 # Plotting with custom colors and patterns
 fig, ax = plt.subplots(figsize=(3, 3))
 bars = pivot_df.plot(kind='bar', ax=ax, width=0.6, 
-                     color=['#2ca02c', '#ff7f0e'],  # Classic green and orange
+                     color=['#2ca02c', '#ff7f0e'], 
                      legend=True)
 
-# Add hatching patterns to the bars
-# bar_patches = ax.patches
 # patterns_latency = ['\\', 'x']  # Different patterns for each scaling factor
 # for i, patch in enumerate(bar_patches):
 #     # Apply pattern based on the scaling factor (column), not the bar index

@@ -3,7 +3,7 @@ description: "Budget-limited Natural-Plan evaluation for edge deployment"
 
 model:
   max_tokens: 512           
-  max_model_len: 13312      
+  max_model_len: 2048      
   temperature: 0.0          
   top_p: 0.9
   stop_sequences: ["<|im_end|>", "<|endoftext|>", "</s>"]

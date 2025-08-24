@@ -52,7 +52,7 @@ class NaturalPlanLoader:
 
     def __init__(self, data_root: str | pathlib.Path | None = None):
         if data_root is None:
-            self.data_root = (pathlib.Path(__file__).resolve().parents[3] / "eval/data").resolve()
+            self.data_root = (pathlib.Path(__file__).resolve().parents[5] / "benchmarks/agentic_planner/eval/data").resolve()
         else:
             self.data_root = pathlib.Path(data_root).expanduser().resolve()
 

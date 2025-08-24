@@ -35,6 +35,20 @@ class HardwareDetector:
     @staticmethod
     def _is_tegra() -> bool:
         """Check if running on NVIDIA Tegra device."""
+        tegra_indicators = [
+            "/etc/nv_tegra_release",
+            "/sys/firmware/devicetree/base/compatible",
+            "/sys/firmware/devicetree/base/model"
+        ]
+        
+        for indicator in tegra_indicators:
+            try:
+                if Path(indicator).exists():
+                    content = Path(indicator).read_text().lower()
+                    if "tegra" in content or "jetson" in content:
+                        return True
+            except:
+                pass
         try:
             result = subprocess.run(
                 ["nvidia-smi", "-q"], 
@@ -47,6 +61,7 @@ class HardwareDetector:
                 return "orin" in output or "nvgpu" in output or "tegra" in output
         except:
             pass
+        
         return False
     
     @staticmethod
@@ -233,11 +248,13 @@ def show_usage():
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Environment Setup")
+    parser = argparse.ArgumentParser(description="Environment Bootstrap")
     parser.add_argument("--platform", choices=["auto", "server", "tegra"], default="auto",
                       help="Target platform (default: auto-detect)")
     parser.add_argument("--info-only", action="store_true",
                       help="Only show device information")
+    parser.add_argument("--yes", "-y", action="store_true",
+                      help="Skip interactive prompts (for CI/automation)")
     
     args = parser.parse_args()
     
@@ -298,12 +315,16 @@ def main():
                 print("Consider creating one first:")
                 print("  make venv")
                 print("  source .venv/bin/activate")
-                print("  python setup.py")
+                print("  python scripts/bootstrap.py")
                 print("")
-                response = input("Continue anyway? (y/N): ").lower()
-                if response != 'y':
-                    print("Setup cancelled. Create venv first!")
-                    sys.exit(1)
+                if not args.yes:
+                    response = input("Continue anyway? (y/N): ").lower()
+                    if response != 'y':
+                        print("Setup cancelled. Create venv first!")
+                        sys.exit(1)
+                else:
+                    print("Continuing without venv (--yes flag provided)")
+                    print("Note: This may cause package conflicts!")
             
             setup.install_dependencies(platform)
             setup.verify_setup()

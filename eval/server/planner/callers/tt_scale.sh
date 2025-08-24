@@ -7,17 +7,14 @@
 
 set -euo pipefail
 
-# Get repository root and read from files/ directly
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
-# Read output directory from files/benchmarks.yaml
 if command -v yq &> /dev/null; then
     BASE_DIR="$(yq eval '.outputs.base_dir' "$REPO_ROOT/files/benchmarks.yaml" 2>/dev/null || echo "data/")"
     PLANNER_SUBDIR="$(yq eval '.outputs.subdirs.agentic' "$REPO_ROOT/files/benchmarks.yaml" 2>/dev/null || echo "planner/")"
     OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-$REPO_ROOT/${BASE_DIR}${PLANNER_SUBDIR}server/scaling}"
 else
-    # Fallback to hardcoded path if yq not available
     OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-$REPO_ROOT/data/planner/server/scaling}"
 fi
 
