@@ -45,9 +45,9 @@ DEFAULT_MODELS = [
 
 TASKS = ["trip", "meeting", "calendar"]
 TASK_FILES = {
-    "trip": "trip_planning.json",
-    "meeting": "meeting_planning.json", 
-    "calendar": "calendar_scheduling.json",
+    "trip": "trip_planner.json",
+    "meeting": "meeting_planner.json", 
+    "calendar": "calendar_planner.json",
 }
 
 def load_dataset(task: str, data_dir: Path) -> Dict[str, Dict[str, Any]]:
@@ -227,13 +227,13 @@ def main():
             writer.writerows(summaries)
     
     # Print quick summary to console
-    print(f"\n✅ Analysis complete!")
-    print(f"📊 Analyzed {len(all_stats)} examples across {len(args.models)} models")
-    print(f"📝 Detailed results: {args.output}")
-    print(f"📈 Summary statistics: {args.summary}")
+    print(f"\n Analysis complete!")
+    print(f" Analyzed {len(all_stats)} examples across {len(args.models)} models")
+    print(f" Detailed results: {args.output}")
+    print(f" Summary statistics: {args.summary}")
     
     if summaries:
-        print(f"\n🔍 Quick Overview:")
+        print(f"\n Quick Overview:")
         for summary in summaries[:6]: 
             print(f"  {summary['task']} ({summary['model']}): "
                   f"prompt mean {summary['prompt_mean']:.0f} tokens, "

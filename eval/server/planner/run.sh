@@ -47,7 +47,7 @@ case "${1:-base}" in
             --task all \
             --model "${DEFAULT_MODEL}" \
             --gpus "${DEFAULT_GPUS}" \
-            --output "./results/base" \
+            --output "data/planner/server/base" \
             2>&1 | tee -a run.log
         ;;
     *)

@@ -83,7 +83,8 @@ class VLLMModel:
             "tensor_parallel_size": self.config.tensor_parallel_size,
             "trust_remote_code": self.config.trust_remote_code,
             "gpu_memory_utilization": self.config.gpu_memory_utilization,
-            "dtype": self.config.dtype
+            "dtype": self.config.dtype,
+            "disable_log_stats": False  
         }
         
         if self.config.max_model_len is not None:

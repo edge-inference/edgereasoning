@@ -15,49 +15,78 @@
 # • Each task launches in its own detached screen session so you can
 #   re-attach (`screen -r <session>`) and tail the logs live.
 # • GPU allocation is static (see GPU_MAP below) but easy to tweak.
-# • The script always uses bench/configs/plan_direct.yaml and therefore uses the
+# • The script always uses bench/configs/direct_planner.yaml and therefore uses the
 #   DirectNaturalPlanEvaluator with no-reasoning trick via planner_eval.py.
 # -----------------------------------------------------------------------------
 
 set -euo pipefail
 
+# Get repository root and read from files/ directly
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-BASE_CONFIG_DIR="$SCRIPT_DIR/../configs"
-DIRECT_CONFIG="${BASE_CONFIG_DIR}/plan_direct.yaml"
-OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-./results/direct}"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
-# Python environment to activate (same as bypass.sh)
-VENV_ACT="/home/lab/modfi/SkyThought/venvsky/bin/activate"
+# Read output directory from files/benchmarks.yaml
+if command -v yq &> /dev/null; then
+    BASE_DIR="$(yq eval '.outputs.base_dir' "$REPO_ROOT/files/benchmarks.yaml" 2>/dev/null || echo "data/")"
+    PLANNER_SUBDIR="$(yq eval '.outputs.subdirs.agentic' "$REPO_ROOT/files/benchmarks.yaml" 2>/dev/null || echo "planner/")"
+    OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-$REPO_ROOT/${BASE_DIR}${PLANNER_SUBDIR}server/direct}"
+else
+    # Fallback to hardcoded path if yq not available
+    OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-$REPO_ROOT/data/planner/server/direct}"
+fi
+
+BASE_CONFIG_DIR="$SCRIPT_DIR/../configs"
+DIRECT_CONFIG="${BASE_CONFIG_DIR}/direct_planner.yaml"
+
+# Load model configuration
+MODELS_CONF="$SCRIPT_DIR/models.conf"
+if [[ -f "$MODELS_CONF" ]]; then
+    source "$MODELS_CONF"
+fi
+
+# Load GPU configuration
+GPU_CONF="$SCRIPT_DIR/gpu.conf"
+if [[ -f "$GPU_CONF" ]]; then
+    source "$GPU_CONF"
+fi
+
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+    echo "Warning: No virtual environment detected. Please run 'source .venv/bin/activate' first."
+fi
 
 # 1️⃣ Parse CLI ---------------------------------------------------------------
 TASK_ARG=${1:-both}   # meeting | calendar | trip | all | both
 MODEL_SIZE=${2:-14b}  # 14b | 8b | 1.5b
 
-# 2️⃣ Map model-size shortcut → full HF repo ----------------------------------
-case "${MODEL_SIZE,,}" in
+# 2️⃣ Get model from config --------------------------------------------------
+MODEL_SHORT="${MODEL_SIZE,,}"
+case "$MODEL_SHORT" in
   14b)
-    MODEL="Qwen/Qwen2.5-14B-Instruct" ; MODEL_SHORT="14b" ;;
+    MODEL="$MODEL_14b" ;;
   8b)
-    MODEL="meta-llama/Llama-3.1-8B-Instruct" ; MODEL_SHORT="8b" ;;
+    MODEL="$MODEL_8b" ;;
   1.5b|1_5b|1.5)
-    MODEL="Qwen/Qwen2.5-1.5B-Instruct" ; MODEL_SHORT="1.5b" ;;
+    MODEL="$MODEL_1_5b" ; MODEL_SHORT="1.5b" ;;
   *)
-    echo "❌ Unsupported MODEL_SIZE '${MODEL_SIZE}'. Use: 14b | 8b | 1.5b" >&2 ; exit 1 ;;
+    echo "Error: Unsupported MODEL_SIZE '${MODEL_SIZE}'. Use: 14b | 8b | 1.5b" >&2 ; exit 1 ;;
 esac
 
-# Set output directory now that MODEL_SHORT is defined
+if [[ -z "$MODEL" ]]; then
+    echo "Error: Model not defined in models.conf for size: $MODEL_SHORT" >&2 ; exit 1
+fi
+
 OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_SHORT}"
 
-# 3️⃣ Static GPU assignment table --------------------------------------------
-#   Key = "${MODEL_SHORT},${TASK}" → value = GPU-ID
-declare -A GPU_MAP
-GPU_MAP["14b,trip"]=0     ; GPU_MAP["14b,meeting"]=1     ; GPU_MAP["14b,calendar"]=2
-GPU_MAP["8b,trip"]=3     ; GPU_MAP["8b,meeting"]=4     ; GPU_MAP["8b,calendar"]=5
-GPU_MAP["1.5b,trip"]=6   ; GPU_MAP["1.5b,meeting"]=7   ; GPU_MAP["1.5b,calendar"]=7
+# 3️⃣ Get GPU assignments from config ----------------------------------------
+MODEL_VAR=$(echo "$MODEL_SHORT" | sed 's/\./_/g')
 
-MEETING_GPU=${GPU_MAP["${MODEL_SHORT},meeting"]}
-CALENDAR_GPU=${GPU_MAP["${MODEL_SHORT},calendar"]}
-TRIP_GPU=${GPU_MAP["${MODEL_SHORT},trip"]}
+MEETING_GPU_VAR="GPU_MAP_${MODEL_VAR}_meeting"
+CALENDAR_GPU_VAR="GPU_MAP_${MODEL_VAR}_calendar"  
+TRIP_GPU_VAR="GPU_MAP_${MODEL_VAR}_trip"
+
+MEETING_GPU=${!MEETING_GPU_VAR:-0}
+CALENDAR_GPU=${!CALENDAR_GPU_VAR:-1}
+TRIP_GPU=${!TRIP_GPU_VAR:-2}
 
 # 4️⃣ Decide which tasks to run ----------------------------------------------
 RUN_MEETING=false; RUN_CALENDAR=false; RUN_TRIP=false
@@ -102,10 +131,14 @@ launch_task() {
   echo "📝 Log: $full_log_path"
   
   screen -dmS "$session" bash -c "
-if [ ! -f $VENV_ACT ]; then
-  echo '❌ Virtual env activation script not found: $VENV_ACT' >&2; exit 1
+# Activate virtual environment
+cd '$REPO_ROOT'
+if [[ -f '.venv/bin/activate' ]]; then
+    source .venv/bin/activate
+else
+    echo 'Warning: .venv/bin/activate not found. Run make venv first.'
 fi
-source $VENV_ACT
+cd - > /dev/null
 python -u $SCRIPT_DIR/../planner.py \
   --task $task \
   --model '$MODEL' \

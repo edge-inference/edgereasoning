@@ -14,7 +14,28 @@ echo "* Connecting to container $CID (image: $IMAGE)..."
 
 if [ "$1" != "1" ]; then
   echo "* Installing packages..."
-docker exec -it "$CID" bash -c "apt update && apt install -y screen vim && pip install --index-url https://pypi.org/simple datasets nvtx"
+
+  APT_PACKAGES=(
+    screen
+    vim
+    # add more apt packages here
+  )
+
+  PIP_PACKAGES=(
+    datasets
+    nvtx
+    openpyxl
+    matplotlib
+    seaborn
+    numpy
+    pandas
+  )
+
+  docker exec -it "$CID" bash -c "
+    apt update && \
+    apt install -y ${APT_PACKAGES[*]} && \
+    pip install --index-url https://pypi.org/simple ${PIP_PACKAGES[*]}
+  "
 else
   echo "* Skipping installation (argument '1' provided)"
 fi

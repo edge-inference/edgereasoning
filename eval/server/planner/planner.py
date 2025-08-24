@@ -41,27 +41,23 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--config", help="Path to YAML config (single-task only)")
     p.add_argument("--base-config-dir", default="bench/configs",
                    help="Directory with np_<task>.yaml configs")
-    p.add_argument("--output", default="./results",
+    p.add_argument("--output", default="../../../data/planner/server",
                    help="Base output directory")
     return p.parse_args()
 
 def run_task(task: str, model_path: str, config_path: str, output_root: str, gpu_id: str | None = None):
-    # Pin GPU if requested
     if gpu_id is not None:
         os.environ["CUDA_VISIBLE_DEVICES"] = gpu_id
         print(f"[planner_eval] Using GPU {gpu_id} for task {task}")
     
-    # Determine which evaluator to use based on config
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
     
-    # Check config type based on exact name
     config_name = config.get('name', '').lower()
     is_direct_config = config_name == 'plan_direct'
     is_budget_config = config_name == 'np_budget'
     is_scaling_config = config_name == 'np_scaling'
     
-    # Select evaluator based on config name
     if is_scaling_config:
         print(f"[planner_eval] Using PlanEvaluatorScaling")
         evaluator = PlanEvaluatorScaling(config_path, task)
@@ -91,9 +87,7 @@ def main() -> None:
         args.config = cfg
 
     if args.task == "all":
-        # Run each task in a separate subprocess to avoid absl.flags duplicates
         for task in TASKS:
-            # Determine GPU for this task
             gpu_list = args.gpus.split(',') if args.gpus else ["0", "1", "2"]
             gpu_id = gpu_list[TASKS.index(task) % len(gpu_list)]
             cmd = [
