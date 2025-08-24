@@ -21,7 +21,6 @@
 
 set -euo pipefail
 
-# Get repository root and read from files/ directly
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 
@@ -31,7 +30,6 @@ if command -v yq &> /dev/null; then
     PLANNER_SUBDIR="$(yq eval '.outputs.subdirs.agentic' "$REPO_ROOT/files/benchmarks.yaml" 2>/dev/null || echo "planner/")"
     OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-$REPO_ROOT/${BASE_DIR}${PLANNER_SUBDIR}server/direct}"
 else
-    # Fallback to hardcoded path if yq not available
     OUTPUT_DIR_BASE="${OUTPUT_DIR_BASE:-$REPO_ROOT/data/planner/server/direct}"
 fi
 
@@ -62,17 +60,17 @@ MODEL_SIZE=${2:-14b}  # 14b | 8b | 1.5b
 MODEL_SHORT="${MODEL_SIZE,,}"
 case "$MODEL_SHORT" in
   14b)
-    MODEL="$MODEL_14b" ;;
+    MODEL="${DIRECT_14b:-}" ;;
   8b)
-    MODEL="$MODEL_8b" ;;
+    MODEL="${DIRECT_8b:-}" ;;
   1.5b|1_5b|1.5)
-    MODEL="$MODEL_1_5b" ; MODEL_SHORT="1.5b" ;;
+    MODEL_SHORT="1.5b" ; MODEL="${DIRECT_1_5b:-}" ;;
   *)
     echo "Error: Unsupported MODEL_SIZE '${MODEL_SIZE}'. Use: 14b | 8b | 1.5b" >&2 ; exit 1 ;;
 esac
 
 if [[ -z "$MODEL" ]]; then
-    echo "Error: Model not defined in models.conf for size: $MODEL_SHORT" >&2 ; exit 1
+    echo "Error: DIRECT model not set for size: $MODEL_SHORT. Define DIRECT_${MODEL_SHORT//./_} in models.conf" >&2 ; exit 1
 fi
 
 OUTPUT_DIR="${OUTPUT_DIR_BASE}/${MODEL_SHORT}"
@@ -140,6 +138,12 @@ else
 fi
 cd - > /dev/null
 export CUDA_VISIBLE_DEVICES=$gpu
+export VLLM_USE_V1=0
+export VLLM_ENABLE_METRICS=true
+export VLLM_PROFILE=true
+export VLLM_DETAILED_METRICS=true
+export VLLM_REQUEST_METRICS=true
+export VLLM_OTLP_TRACES_ENDPOINT=http://127.0.0.1:4317
 python -u $SCRIPT_DIR/../planner.py \
   --task $task \
   --model '$MODEL' \

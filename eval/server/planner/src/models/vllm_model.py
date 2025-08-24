@@ -6,10 +6,13 @@ performance monitoring and standardized prediction results.
 """
 
 import time
+import os
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any
-from vllm import LLM, SamplingParams
+from typing import List, Dict, Optional, Any, TYPE_CHECKING
 from transformers import AutoTokenizer
+
+if TYPE_CHECKING:
+    from vllm import LLM as VLLM_LLM
 
 
 @dataclass
@@ -64,12 +67,18 @@ class PredictionResult:
 class VLLMModel:
     def __init__(self, config: VLLMConfig):
         self.config = config
-        self.model: Optional[LLM] = None
+        self.model: Optional["VLLM_LLM"] = None
         self.tokenizer: Optional[AutoTokenizer] = None
         self._load_model()
         
     def _load_model(self) -> None:
         """Load VLLM model and tokenizer."""
+        os.environ.setdefault("VLLM_USE_V1", "0")
+        os.environ.setdefault("VLLM_ENABLE_METRICS", "true")
+        os.environ.setdefault("VLLM_PROFILE", "true")
+        os.environ.setdefault("VLLM_DETAILED_METRICS", "true")
+        os.environ.setdefault("VLLM_REQUEST_METRICS", "true")
+
         print(f"Loading tokenizer: {self.config.model_path}")
         self.tokenizer = AutoTokenizer.from_pretrained(
             self.config.model_path,
@@ -84,12 +93,13 @@ class VLLMModel:
             "trust_remote_code": self.config.trust_remote_code,
             "gpu_memory_utilization": self.config.gpu_memory_utilization,
             "dtype": self.config.dtype,
-            "disable_log_stats": False  
         }
         
         if self.config.max_model_len is not None:
             model_kwargs["max_model_len"] = self.config.max_model_len
             
+        # Import LLM after environment configuration
+        from vllm import LLM  # noqa: WPS433 (intentional local import)    
         self.model = LLM(**model_kwargs)
         print(f"Model loaded successfully")
         
@@ -118,6 +128,7 @@ class VLLMModel:
             raise RuntimeError("Model not loaded. Call _load_model() first.")
             
         # Configure sampling parameters
+        from vllm import SamplingParams  # noqa: WPS433 (intentional local import)
         sampling_params = SamplingParams(
             temperature=temperature,
             max_tokens=max_tokens,
@@ -219,6 +230,7 @@ class VLLMModel:
         if len(prompts) == 1:
             return [self.predict(prompts[0], max_tokens, temperature, top_p, **kwargs)]
         
+        from vllm import SamplingParams  # noqa: WPS433 (intentional local import)
         sampling_params = SamplingParams(
             temperature=temperature,
             max_tokens=max_tokens,

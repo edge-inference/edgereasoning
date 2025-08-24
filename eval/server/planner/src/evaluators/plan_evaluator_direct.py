@@ -12,15 +12,30 @@ import json, os, sys, pathlib
 from datetime import datetime
 from functools import lru_cache
 
-# Ensure repository root (where evaluate_*.py live) is on PYTHONPATH
-REPO_ROOT = pathlib.Path(__file__).resolve().parents[3]
-if str(REPO_ROOT) not in sys.path:
-    sys.path.append(str(REPO_ROOT))
+# Ensure repository paths (where evaluate_*.py may live) are on PYTHONPATH
+PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[5]
 
-# Also add eval directory where official scripts live
-EVAL_DIR = REPO_ROOT / 'eval'
-if EVAL_DIR.exists() and str(EVAL_DIR) not in sys.path:
-    sys.path.append(str(EVAL_DIR))
+# Load Natural-Plan eval dir from central loader
+natplan_dir = None
+try:
+    from loaders.benchmarks import get_benchmark_config  # type: ignore
+    cfg = get_benchmark_config()
+    rel = cfg.get_agentic_planner_eval_dir()
+    p = (PROJECT_ROOT / rel).resolve()
+    if p.exists():
+        natplan_dir = p
+except Exception:
+    natplan_dir = None
+candidate_eval_dirs = [d for d in [natplan_dir] if d is not None]
+candidate_eval_dirs += [
+    PROJECT_ROOT / 'benchmarks' / 'agentic_planner' / 'eval',
+    PROJECT_ROOT / 'eval',
+]
+for p in [PROJECT_ROOT] + candidate_eval_dirs:
+    if p.exists():
+        s = str(p)
+        if s not in sys.path:
+            sys.path.append(s)
 
 from .base_evaluator import BaseEvaluator, EvaluationResult
 from ..data_loaders.natural_plan_loader import NaturalPlanLoader, NPExample

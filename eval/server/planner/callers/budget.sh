@@ -141,6 +141,11 @@ else
 fi
 cd - > /dev/null
 export CUDA_VISIBLE_DEVICES=$gpu
+export VLLM_USE_V1=0
+export VLLM_ENABLE_METRICS=true
+export VLLM_PROFILE=true
+export VLLM_DETAILED_METRICS=true
+export VLLM_REQUEST_METRICS=true
 python -u $SCRIPT_DIR/../planner.py \
   --task $task \
   --model '$MODEL' \

@@ -14,6 +14,11 @@ set -e
 # Environment setup
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
+export VLLM_USE_V1=0
+export VLLM_ENABLE_METRICS=true
+export VLLM_PROFILE=true
+export VLLM_DETAILED_METRICS=true
+export VLLM_REQUEST_METRICS=true
 
 # Default configuration
 DEFAULT_GPUS="0,1,2"
