@@ -258,7 +258,8 @@ def main():
     
     args = parser.parse_args()
     
-    repo_root = Path(__file__).parent.absolute()
+    # __file__ is scripts/bootstrap.py → repo_root should be the parent of 'scripts'
+    repo_root = Path(__file__).resolve().parents[1]
     
     setup = EnvironmentSetup(repo_root)
     detector = HardwareDetector()

@@ -10,8 +10,8 @@ echo "Testing methods to extract TTFT and generation metrics"
 echo ""
 
 # Check if we're in the right directory
-if [ ! -f "test_timing.py" ]; then
-    echo "Error: test_timing.py not found. Run from tests/ directory."
+if [ ! -f "test_simple_metrics.py" ]; then
+    echo "Error: test_simple_metrics.py not found. Run from tests/ directory."
     exit 1
 fi
 
@@ -27,8 +27,8 @@ python -c "import vllm; print(f'VLLM version: {vllm.__version__}')" || {
 }
 
 # Run the main test
-echo "Running timing tests..."
-python test_timing.py
+echo "Running simple metrics tests..."
+python test_simple_metrics.py
 
 echo ""
 echo "=== Manual Async Test ==="

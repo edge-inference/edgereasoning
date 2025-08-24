@@ -139,6 +139,7 @@ else
     echo 'Warning: .venv/bin/activate not found. Run make venv first.'
 fi
 cd - > /dev/null
+export CUDA_VISIBLE_DEVICES=$gpu
 python -u $SCRIPT_DIR/../planner.py \
   --task $task \
   --model '$MODEL' \
