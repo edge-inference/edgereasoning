@@ -40,7 +40,7 @@ server = [
     "datasets>=2.10.0",
     "matplotlib>=3.6.0",
     "pandas>=1.5.0",
-    "torch>=2.0.0",
+    "torch>=2.0.0"
 ]
 
 # Tegra evaluation dependencies

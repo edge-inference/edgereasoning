@@ -3,7 +3,7 @@ description: "Natural-Planner evaluation for non reasoning models"
 
 model:
   max_tokens: 512           
-  max_model_len: 2048      
+  max_model_len: 5000      
   temperature: 0.0          
   top_p: 0.9
   stop_sequences: ["<|im_end|>", "<|endoftext|>", "</s>"]

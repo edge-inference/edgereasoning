@@ -182,8 +182,19 @@ class EnvironmentSetup:
             subprocess.run([sys.executable, "-m", "pip", "install", "-r", str(requirements_file)])
         
         packages = {
-            "tegra": ["vllm", "transformers", "datasets", "pyyaml", "tqdm", "psutil"],
-            "server": ["vllm", "transformers", "datasets", "pyyaml", "tqdm", "psutil", "matplotlib", "pandas"]
+            "tegra": ["datasets", "pyyaml", "tqdm", "psutil", "pynvml", "matplotlib", "pandas", "numpy"],
+            "server": [
+                "vllm",
+                "transformers",
+                "datasets",
+                "pyyaml",
+                "tqdm",
+                "psutil",
+                "matplotlib",
+                "pandas",
+                "pynvml",
+                "numpy"
+            ]
         }
         
         if platform in packages:

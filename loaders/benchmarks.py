@@ -59,6 +59,14 @@ class BenchmarkConfig:
         if dataset not in datasets[benchmark]:
             raise ValueError(f"Unknown dataset '{dataset}' in benchmark '{benchmark}'")
         return pathlib.Path(datasets[benchmark][dataset])
+
+    def get_agentic_planner_eval_dir(self) -> pathlib.Path:
+        """Get Natural-Plan evaluation directory (agentic planner)."""
+        ap = self._config['datasets'].get('agentic_planner', {})
+        rel = ap.get('natural_plan')
+        if not rel:
+            raise ValueError("Missing datasets.agentic_planner.natural_plan in benchmarks.yaml")
+        return pathlib.Path(rel)
     
     def get_synthetic_dataset_path(self, model_family: str) -> pathlib.Path:
         """Get synthetic dataset path for model family"""
