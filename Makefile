@@ -154,12 +154,14 @@ tegra-all:
 	fi
 	cd eval/tegra/mmlu && ./launch.sh all
 
+.PHONY: prefill
 prefill:
 	@if [ "$(DETECTED_PLATFORM)" != "tegra" ]; then \
 		echo "ERROR: Tegra platform required for synthetic benchmarks"; \
 		exit 1; \
 	fi
-	@if [ -f "/.dockerenv" ]; then \
+	@echo "Detecting environment..."; \
+	if ( [ -f "/run/systemd/container" ] || [ -f "/.dockerenv" ] || grep -qaE '(docker|containerd|cri-o|podman|kubepods)' /proc/1/cgroup 2>/dev/null ); then \
 		echo "Running inside container - executing directly"; \
 		cd eval/tegra/mmlu && ./launch.sh prefill; \
 	else \
@@ -173,12 +175,14 @@ prefill:
 		docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh prefill'; \
 	fi
 
+.PHONY: decode
 decode:
 	@if [ "$(DETECTED_PLATFORM)" != "tegra" ]; then \
 		echo "ERROR: Tegra platform required for synthetic benchmarks"; \
 		exit 1; \
 	fi
-	@if [ -f "/.dockerenv" ]; then \
+	@echo "Detecting environment..."; \
+	if ( [ -f "/run/systemd/container" ] || [ -f "/.dockerenv" ] || grep -qaE '(docker|containerd|cri-o|podman|kubepods)' /proc/1/cgroup 2>/dev/null ); then \
 		echo "Running inside container - executing directly"; \
 		cd eval/tegra/mmlu && ./launch.sh decode; \
 	else \
@@ -192,12 +196,14 @@ decode:
 		docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh decode'; \
 	fi
 
+.PHONY: tt-scaling
 tt-scaling:
 	@if [ "$(DETECTED_PLATFORM)" != "tegra" ]; then \
 		echo "ERROR: Tegra platform required for synthetic benchmarks"; \
 		exit 1; \
 	fi
-	@if [ -f "/.dockerenv" ]; then \
+	@echo "Detecting environment..."; \
+	if ( [ -f "/run/systemd/container" ] || [ -f "/.dockerenv" ] || grep -qaE '(docker|containerd|cri-o|podman|kubepods)' /proc/1/cgroup 2>/dev/null ); then \
 		echo "Running inside container - executing directly"; \
 		cd eval/tegra/mmlu && ./launch.sh tt_scaling; \
 	else \
