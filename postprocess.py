@@ -53,6 +53,12 @@ Examples:
   
   # Override paths manually
   python postprocess.py --results-dir ./custom_dir --output-dir ./custom_output
+  
+  # Handle container-created directories (auto-fix permissions)
+  python postprocess.py --sub-config prefill --fix-permissions
+  
+  # Run analysis after consolidation
+  python postprocess.py --sub-config prefill --analysis
         """
     )
     
@@ -99,6 +105,12 @@ Examples:
         '--analysis', '-a',
         action='store_true',
         help='Perform performance analysis and generate plots/reports (default: skipped)'
+    )
+    
+    parser.add_argument(
+        '--fix-permissions',
+        action='store_true',
+        help='Attempt to fix directory permissions (requires sudo access)'
     )
     
     args = parser.parse_args()
@@ -160,7 +172,48 @@ Examples:
         sys.exit(1)
     
     output_dir = Path(output_dir_str)
-    output_dir.mkdir(parents=True, exist_ok=True)
+    
+    try:
+        output_dir.mkdir(parents=True, exist_ok=True)
+    except PermissionError:
+        print(f"\nWARNING: Permission denied creating directory: {output_dir}")
+        print("This likely happened because the directory was created by a container (root).")
+        
+        if args.fix_permissions:
+            print("\nAttempting to fix permissions...")
+            import subprocess
+            try:
+                data_dir = Path("data")
+                if data_dir.exists():
+                    cmd = f"sudo chown -R $USER:$USER {data_dir}"
+                    subprocess.run(cmd, shell=True, check=True)
+                    print("Permissions fixed! Retrying directory creation...")
+                    output_dir.mkdir(parents=True, exist_ok=True)
+                else:
+                    print("Data directory not found, creating output directory...")
+                    output_dir.mkdir(parents=True, exist_ok=True)
+            except subprocess.CalledProcessError:
+                print("Failed to fix permissions. Falling back to alternative directory.")
+                alt_output = Path("outputs") / "postprocess" / datetime.now().strftime("%Y%m%d_%H%M%S") / output_dir.name
+                output_dir = alt_output
+                output_dir.mkdir(parents=True, exist_ok=True)
+                print(f"Using alternative output directory: {output_dir}")
+        else:
+            print("\nOptions:")
+            print("1. Fix permissions: sudo chown -R $USER:$USER data/")
+            print("2. Use alternative output directory")
+            print("3. Run with --fix-permissions flag")
+            
+            alt_output = Path("outputs") / "postprocess" / datetime.now().strftime("%Y%m%d_%H%M%S") / output_dir.name
+            response = input(f"\nUse alternative output directory? [{alt_output}] (y/n): ").strip().lower()
+            
+            if response in ['y', 'yes', '']:
+                output_dir = alt_output
+                output_dir.mkdir(parents=True, exist_ok=True)
+                print(f"Using alternative output directory: {output_dir}")
+            else:
+                print("Please fix permissions or choose a different output directory.")
+                sys.exit(1)
     
     print("MMLU Results Processor")
     print("="*50)
