@@ -6,8 +6,8 @@ description: "Direct answer evaluation without explicit reasoning steps"
 
 # Model settings
 model:
-  max_tokens: 4096
-  max_model_len: 1024 
+  max_tokens: 3072
+  max_model_len: 4096 
   temperature: 0.6
   top_p: 0.95
   tensor_parallel_size: 1

@@ -10,13 +10,16 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-sys.path.append(str(Path(__file__).parents[3]))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(str(Path(__file__).parents[4]))
 
 from src.evaluators.noreasoning_evaluator import NoReasoningEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
+from src.utils.cleanup import setup_cleanup_handlers, register_model_for_cleanup, cleanup_all
 from loaders.benchmarks import get_benchmark_config
 from loaders.results import get_results_config
+
+setup_cleanup_handlers()
 
 
 def main():
@@ -26,7 +29,7 @@ def main():
     parser.add_argument('--max-tokens', type=int, help='Override max tokens per response')
     parser.add_argument('--temperature', type=float, help='Override temperature for sampling')
     parser.add_argument('--seed', type=int, help='Random seed for reproducibility')
-    parser.add_argument('--tensor-parallel-size', type=int, default=8, help='Number of GPUs to use (default: 8)')
+    parser.add_argument('--tensor-parallel-size', type=int, default=1, help='Number of GPUs to use (default: 1)')
     args = parser.parse_args()
     
     config = get_benchmark_config()
@@ -86,6 +89,10 @@ def main():
             print(f"* Setting up model with {args.tensor_parallel_size} GPUs...")
             evaluator.setup_model(model_path)
             
+            # Register model for cleanup
+            if hasattr(evaluator, 'model'):
+                register_model_for_cleanup(evaluator.model)
+            
             loader = MMLULoader()
             all_subjects = loader.get_available_subjects()
             
@@ -143,7 +150,7 @@ def main():
                 'total_correct': total_correct,
                 'quick_response_rate': quick_response_rate,
                 'total_quick_responses': total_quick_responses,
-                'output_base': output_base
+                'output_base': str(output_base)
             }
             all_model_results[model_name] = model_results
             
@@ -161,7 +168,7 @@ def main():
             
             model_summary = {
                 'model': model_path,
-                'config': config_path,
+                'config': args.config,
                 'timestamp': timestamp,
                 'tensor_parallel_size': args.tensor_parallel_size,
                 'total_subjects': len(all_subjects),
@@ -171,7 +178,7 @@ def main():
                 'total_correct': total_correct,
                 'quick_response_rate': quick_response_rate,
                 'total_quick_responses': total_quick_responses,
-                'output_base': output_base,
+                'output_base': str(output_base),
                 'config_details': {
                     'name': evaluator.config.name,
                     'description': evaluator.config.description,
@@ -221,7 +228,7 @@ def main():
     
     sweep_summary = {
         'sweep_timestamp': timestamp,
-        'config': config_path,
+        'config': args.config,
         'tensor_parallel_size': args.tensor_parallel_size,
         'models_evaluated': len(models_to_evaluate),
         'results': all_model_results
@@ -234,14 +241,16 @@ def main():
     
     print(f"\n* Sweep summary saved to: {sweep_summary_file}")
     
-    # Final status  
     successful_models = sum(1 for r in all_model_results.values() if 'error' not in r)
-    if successful_models == len(models_to_evaluate):
-        print(f"\n* All {len(models_to_evaluate)} models completed successfully!")
-        return True
-    else:
-        print(f"\n* {successful_models}/{len(models_to_evaluate)} models completed successfully")
-        return False
+    try:
+        if successful_models == len(models_to_evaluate):
+            print(f"\n* All {len(models_to_evaluate)} models completed successfully!")
+            return True
+        else:
+            print(f"\n* {successful_models}/{len(models_to_evaluate)} models completed successfully")
+            return False
+    finally:
+        cleanup_all()
 
 
 if __name__ == "__main__":

@@ -15,18 +15,22 @@ os.environ["VLLM_PROFILE"] = "1"
 os.environ["VLLM_DETAILED_METRICS"] = "1"
 os.environ["VLLM_REQUEST_METRICS"] = "1"
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-sys.path.append(str(Path(__file__).parents[3]))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(str(Path(__file__).parents[4]))
 
 from src.evaluators.scale_evaluator import ScaleEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
+from src.utils.cleanup import setup_cleanup_handlers, register_model_for_cleanup, cleanup_all
 from loaders.benchmarks import get_benchmark_config
 from loaders.results import get_results_config
+from loaders.models import get_default_reasoning_model
+
+setup_cleanup_handlers()
 
 
 def main():
     parser = argparse.ArgumentParser(description='Scale MMLU Evaluation')
-    parser.add_argument('--model', default='deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B', help='Model path')
+    parser.add_argument('--model', default=None, help='Model path')
     parser.add_argument('--config', default='configs/scale.yaml', help='Config file path')
     parser.add_argument('--num-samples', type=int, help='Override number of samples per question')
     parser.add_argument('--token-budget', type=int, help='Override token budget (max tokens per sample)')
@@ -36,17 +40,18 @@ def main():
     config = get_benchmark_config()
     results_config = get_results_config()
     
-    model_name = args.model.split('/')[-1] if '/' in args.model else args.model
+    model_path = args.model if args.model else get_default_reasoning_model()
+    model_name = model_path.split('/')[-1] if '/' in model_path else model_path
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    base_results_dir = results_config.get_result_base_dir('mmlu', model_name=args.model)
+    base_results_dir = results_config.get_result_base_dir('mmlu', model_name=model_path)
     
     output_base = base_results_dir / 'scale'
     os.makedirs(output_base, exist_ok=True)
     
     print("Starting Scale MMLU Evaluation - ALL SUBJECTS")
     print("===============================================")
-    print(f"Model: {args.model}")
+    print(f"Model: {model_path}")
     print(f"Config: {args.config}")
     if args.num_samples:
         print(f"Samples per question override: {args.num_samples}")
@@ -61,7 +66,7 @@ def main():
     try:
         evaluator = ScaleEvaluator(args.config)
         
-        evaluator.config.model['path'] = args.model
+        evaluator.config.model['path'] = model_path
         if args.num_samples:
             evaluator.config.scaling['num_samples'] = args.num_samples
         if args.token_budget:
@@ -71,7 +76,10 @@ def main():
             evaluator.config.model['seed'] = args.seed
         
         print("* Setting up model...")
-        evaluator.setup_model(args.model)
+        evaluator.setup_model(model_path)
+        
+        if hasattr(evaluator, 'model'):
+            register_model_for_cleanup(evaluator.model)
         
         loader = MMLULoader()
         all_subjects = loader.get_available_subjects()
@@ -100,7 +108,7 @@ def main():
                 subject_output_dir = os.path.join(output_base, subject)
                 
                 result = evaluator.evaluate_subject(
-                    model_path=args.model,
+                    model_path=model_path,
                     subject=subject,
                     output_dir=subject_output_dir
                 )
@@ -136,7 +144,7 @@ def main():
         print(f"\n{'='*60}")
         print("SCALE EVALUATION - ALL SUBJECTS SUMMARY")
         print(f"{'='*60}")
-        print(f"Model: {args.model}")
+        print(f"Model: {model_path}")
         print(f"Total Subjects: {len(all_subjects)}")
         print(f"Successful: {successful_subjects}/{len(all_subjects)}")
         print(f"Overall Accuracy: {overall_accuracy:.2%}")
@@ -150,7 +158,7 @@ def main():
         print(f"Scaling Factor: {total_samples_generated / total_questions:.1f}x" if total_questions > 0 else "N/A")
         
         summary = {
-            'model': args.model,
+            'model': model_path,
             'config': args.config,
             'timestamp': timestamp,
             'seed': args.seed,
@@ -159,7 +167,7 @@ def main():
             'overall_accuracy': overall_accuracy,
             'total_questions': total_questions,
             'total_correct': total_correct,
-            'output_base': output_base,
+            'output_base': str(output_base),
             'scaling_metrics': {
                 'samples_per_question': samples_per_question,
                 'total_samples_generated': total_samples_generated,
@@ -208,6 +216,8 @@ def main():
         import traceback
         traceback.print_exc()
         return False
+    finally:
+        cleanup_all()
 
 
 if __name__ == "__main__":

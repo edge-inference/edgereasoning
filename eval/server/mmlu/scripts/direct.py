@@ -10,14 +10,17 @@ import argparse
 from pathlib import Path
 from datetime import datetime
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-sys.path.append(str(Path(__file__).parents[3]))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(str(Path(__file__).parents[4]))
 
 from src.evaluators.noreasoning_evaluator import NoReasoningEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
+from src.utils.cleanup import setup_cleanup_handlers, register_model_for_cleanup, cleanup_all
 from loaders.benchmarks import get_benchmark_config
 from loaders.results import get_results_config
 from loaders.models import get_default_direct_model, get_all_direct_model_paths
+
+setup_cleanup_handlers()
 
 
 def main():
@@ -89,6 +92,9 @@ def main():
             
             print(f"* Setting up model with {args.tensor_parallel_size} GPUs...")
             evaluator.setup_model(model_path)
+            
+            if hasattr(evaluator, 'model'):
+                register_model_for_cleanup(evaluator.model)
             
             loader = MMLULoader()
             all_subjects = loader.get_available_subjects()
@@ -241,14 +247,16 @@ def main():
         
         print(f"\n* Sweep summary saved to: {sweep_summary_file}")
     
-    # Final status  
     successful_models = sum(1 for r in all_model_results.values() if 'error' not in r)
-    if successful_models == len(models_to_evaluate):
-        print(f"\n✓ All {len(models_to_evaluate)} models completed successfully!")
-        return True
-    else:
-        print(f"\n! {successful_models}/{len(models_to_evaluate)} models completed successfully")
-        return False
+    try:
+        if successful_models == len(models_to_evaluate):
+            print(f"\n✓ All {len(models_to_evaluate)} models completed successfully!")
+            return True
+        else:
+            print(f"\n! {successful_models}/{len(models_to_evaluate)} models completed successfully")
+            return False
+    finally:
+        cleanup_all()
 
 
 if __name__ == "__main__":
