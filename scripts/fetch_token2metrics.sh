@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 DEST="$ROOT/third_party/token2metrics"
-REPO="https://github.com/bkubwimana/token2metrics.git"
+REPO="https://github.com/edge-inference/token2metrics.git"
 PIN="${PIN:-main}"
 RUN_T2M_SETUP="${RUN_T2M_SETUP:-1}"
 

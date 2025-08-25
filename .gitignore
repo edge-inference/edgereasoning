@@ -19,7 +19,7 @@ outputs/*
 venv/
 benchmarks/agentic_planner/eval/
 benchmarks/agentic_planner/results/
-data/*/*/*
+data/**/*
 !data/*/
 !data/*/.gitkeep
 !data/README.md
