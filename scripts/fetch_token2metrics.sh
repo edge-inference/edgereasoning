@@ -20,9 +20,13 @@ if [ "${INSTALL_EDITABLE:-1}" = "1" ]; then
 fi
 
 if [ "$RUN_T2M_SETUP" = "1" ]; then
-  echo "[token2metrics] Running setup.py to install requirements..."
-  (cd "$DEST" && python setup.py) || {
-    echo "[warn] token2metrics/setup.py failed";
-    exit 1;
-  }
+  echo "[token2metrics] Installing requirements..."
+  if [ -f "$DEST/requirements.txt" ]; then
+    python -m pip install -r "$DEST/requirements.txt" || {
+      echo "[warn] token2metrics requirements installation failed";
+      exit 1;
+    }
+  else
+    echo "[info] No requirements.txt found, skipping requirements installation";
+  fi
 fi
