@@ -13,6 +13,7 @@ outputs/*
 
 *.pyc
 *.csv
+!benchmarks/synthetic/**/*.csv
 .github
 
 .venv/

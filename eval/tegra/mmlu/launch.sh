@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # cached models
 export HF_HUB_OFFLINE=1
 export TRANSFORMERS_OFFLINE=1
