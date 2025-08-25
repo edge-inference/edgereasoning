@@ -16,7 +16,11 @@ git -C "$DEST" checkout --quiet "$PIN"
 echo "[ok] token2metrics @ $(git -C "$DEST" rev-parse --short HEAD)"
 
 if [ "${INSTALL_EDITABLE:-1}" = "1" ]; then
-  python -m pip install -e "$DEST"
+  echo "[token2metrics] Installing package..."
+  if ! python -m pip install -e "$DEST" 2>/dev/null; then
+    echo "[warn] Editable install failed, trying regular install..."
+    python -m pip install "$DEST"
+  fi
 fi
 
 if [ "$RUN_T2M_SETUP" = "1" ]; then
