@@ -105,10 +105,7 @@ results:
 # ===========================
 # Model Name Mapping
 # ===========================
-model_names:
-  "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B": "DSR1-Qwen-1.5B"
-  "deepseek-ai/DeepSeek-R1-Distill-Llama-8B": "DSR1-Llama-8B"
-  "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B": "DSR1-Qwen-14B"
+model_names: {}
 
 # ===========================
 # Processing Settings

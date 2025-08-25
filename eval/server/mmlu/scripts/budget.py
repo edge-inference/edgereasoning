@@ -39,11 +39,8 @@ def main():
     
     # Create output directory in the results-defined location with model-specific path
     base_results_dir = results_config.get_result_base_dir('mmlu', model_name=args.model)
-    suffix = f'budget_{model_name}'
-    if args.max_tokens:
-        suffix += f'_{args.max_tokens}tok'
     
-    output_base = base_results_dir / f"{timestamp}_{suffix}"
+    output_base = base_results_dir / 'budget'
     os.makedirs(output_base, exist_ok=True)
     
     

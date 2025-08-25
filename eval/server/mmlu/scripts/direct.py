@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-No-Reasoning Evaluation Script - Direct answer selection
+Direct Evaluation Script - Direct answer selection for non-reasoning models
 """
 
 import os
@@ -17,32 +17,37 @@ from src.evaluators.noreasoning_evaluator import NoReasoningEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
 from loaders.benchmarks import get_benchmark_config
 from loaders.results import get_results_config
+from loaders.models import get_default_direct_model, get_all_direct_model_paths
 
 
 def main():
-    parser = argparse.ArgumentParser(description='No-Reasoning MMLU Evaluation')
-    parser.add_argument('--model', default=None, help='Single model path (if not specified, runs sweep)')
-    parser.add_argument('--config', default='configs/noreasoning.yaml', help='Config file path')
+    parser = argparse.ArgumentParser(description='Direct MMLU Evaluation')
+    parser.add_argument('--model', help='Specific model path to evaluate')
+    parser.add_argument('--sweep', action='store_true', help='Run all direct models from config')
+    parser.add_argument('--config', default='configs/direct.yaml', help='Config file path')
     parser.add_argument('--max-tokens', type=int, help='Override max tokens per response')
     parser.add_argument('--temperature', type=float, help='Override temperature for sampling')
     parser.add_argument('--seed', type=int, help='Random seed for reproducibility')
-    parser.add_argument('--tensor-parallel-size', type=int, default=8, help='Number of GPUs to use (default: 8)')
+    parser.add_argument('--tensor-parallel-size', type=int, default=1, help='Number of GPUs to use (default: 1)')
     args = parser.parse_args()
     
     config = get_benchmark_config()
     results_config = get_results_config()
     
-    models_to_evaluate = [
-        'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B'
-    ]
-    
-    if args.model:
+    if args.sweep:
+        models_to_evaluate = get_all_direct_model_paths()
+        mode_description = "MODEL SWEEP"
+    elif args.model:
         models_to_evaluate = [args.model]
+        mode_description = "SINGLE MODEL"
+    else:
+        models_to_evaluate = [get_default_direct_model()]
+        mode_description = "DEFAULT MODEL"
     
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    print("Starting No-Reasoning MMLU Evaluation - MODEL SWEEP")
-    print("====================================================")
+    print(f"Starting Direct MMLU Evaluation - {mode_description}")
+    print("=" * (35 + len(mode_description)))
     print(f"Models to evaluate: {len(models_to_evaluate)}")
     for i, model in enumerate(models_to_evaluate, 1):
         print(f"  {i}. {model}")
@@ -67,8 +72,7 @@ def main():
         model_name = model_path.split('/')[-1] if '/' in model_path else model_path
         
         base_results_dir = results_config.get_result_base_dir('mmlu', model_name=model_path)
-        
-        output_base = base_results_dir / 'noreasoning'
+        output_base = base_results_dir / 'direct'
         os.makedirs(output_base, exist_ok=True)
         
         try:
@@ -98,7 +102,7 @@ def main():
             total_questions = 0
             total_quick_responses = 0
             
-            # Run evaluation for each subject (MODEL LOADED)
+            # Run evaluation for each subject
             for i, subject in enumerate(all_subjects, 1):
                 print(f"\n{'='*60}")
                 print(f"[{i}/{len(all_subjects)}] Evaluating subject: {subject}")
@@ -143,7 +147,7 @@ def main():
                 'total_correct': total_correct,
                 'quick_response_rate': quick_response_rate,
                 'total_quick_responses': total_quick_responses,
-                'output_base': output_base
+                'output_base': str(output_base)
             }
             all_model_results[model_name] = model_results
             
@@ -161,7 +165,7 @@ def main():
             
             model_summary = {
                 'model': model_path,
-                'config': config_path,
+                'config': args.config,
                 'timestamp': timestamp,
                 'tensor_parallel_size': args.tensor_parallel_size,
                 'total_subjects': len(all_subjects),
@@ -171,7 +175,7 @@ def main():
                 'total_correct': total_correct,
                 'quick_response_rate': quick_response_rate,
                 'total_quick_responses': total_quick_responses,
-                'output_base': output_base,
+                'output_base': str(output_base),
                 'config_details': {
                     'name': evaluator.config.name,
                     'description': evaluator.config.description,
@@ -209,38 +213,41 @@ def main():
                 'status': 'failed'
             }
     
+    # Final summary
     print(f"\n{'='*80}")
-    print("FINAL SWEEP SUMMARY - ALL MODELS")
+    print("FINAL SUMMARY")
     print(f"{'='*80}")
     
     for model_name, results in all_model_results.items():
         if 'error' in results:
-            print(f"Error: {model_name}: FAILED - {results['error']}")
+            print(f"✗ {model_name}: FAILED - {results['error']}")
         else:
-            print(f"{model_name}: {results['overall_accuracy']:.2%} accuracy ({results['successful_subjects']}/{results['total_subjects']} subjects)")
+            print(f"✓ {model_name}: {results['overall_accuracy']:.2%} accuracy ({results['successful_subjects']}/{results['total_subjects']} subjects)")
     
-    sweep_summary = {
-        'sweep_timestamp': timestamp,
-        'config': config_path,
-        'tensor_parallel_size': args.tensor_parallel_size,
-        'models_evaluated': len(models_to_evaluate),
-        'results': all_model_results
-    }
-    
-    server_results_dir = results_config.get_result_base_dir('mmlu')
-    sweep_summary_file = server_results_dir / f"{timestamp}_noreason_sweep_summary.json"
-    with open(sweep_summary_file, 'w') as f:
-        json.dump(sweep_summary, f, indent=2)
-    
-    print(f"\n* Sweep summary saved to: {sweep_summary_file}")
+    # Save sweep summary if multiple models
+    if len(models_to_evaluate) > 1:
+        sweep_summary = {
+            'sweep_timestamp': timestamp,
+            'config': args.config,
+            'tensor_parallel_size': args.tensor_parallel_size,
+            'models_evaluated': len(models_to_evaluate),
+            'results': all_model_results
+        }
+        
+        server_results_dir = results_config.get_result_base_dir('mmlu')
+        sweep_summary_file = server_results_dir / f"{timestamp}_direct_sweep_summary.json"
+        with open(sweep_summary_file, 'w') as f:
+            json.dump(sweep_summary, f, indent=2)
+        
+        print(f"\n* Sweep summary saved to: {sweep_summary_file}")
     
     # Final status  
     successful_models = sum(1 for r in all_model_results.values() if 'error' not in r)
     if successful_models == len(models_to_evaluate):
-        print(f"\n* All {len(models_to_evaluate)} models completed successfully!")
+        print(f"\n✓ All {len(models_to_evaluate)} models completed successfully!")
         return True
     else:
-        print(f"\n* {successful_models}/{len(models_to_evaluate)} models completed successfully")
+        print(f"\n! {successful_models}/{len(models_to_evaluate)} models completed successfully")
         return False
 
 
