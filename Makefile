@@ -154,44 +154,68 @@ tegra-all:
 	fi
 	cd eval/tegra/mmlu && ./launch.sh all
 
+.PHONY: prefill
 prefill:
 	@if [ "$(DETECTED_PLATFORM)" != "tegra" ]; then \
 		echo "ERROR: Tegra platform required for synthetic benchmarks"; \
 		exit 1; \
 	fi
-	@CID=$$(docker ps --filter "ancestor=dustynv/vllm:0.8.6-r36.4-cu128-24.04" --format "{{.ID}}" | head -n1); \
-	if [ -z "$$CID" ]; then \
-		echo "ERROR: Tegra container not running (image dustynv/vllm:0.8.6-r36.4-cu128-24.04)"; \
-		echo "TIP: Run 'make setup' (which starts the container) or 'cd eval/tegra && ./open.sh 1'"; \
-		exit 1; \
-	fi; \
-	docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh prefill'
+	@echo "Detecting environment..."; \
+	if ( [ -f "/run/systemd/container" ] || [ -f "/.dockerenv" ] || grep -qaE '(docker|containerd|cri-o|podman|kubepods)' /proc/1/cgroup 2>/dev/null ); then \
+		echo "Running inside container - executing directly"; \
+		cd eval/tegra/mmlu && ./launch.sh prefill; \
+	else \
+		echo "Running on host - using docker exec"; \
+		CID=$$(docker ps --filter "ancestor=dustynv/vllm:0.8.6-r36.4-cu128-24.04" --format "{{.ID}}" | head -n1); \
+		if [ -z "$$CID" ]; then \
+			echo "ERROR: Tegra container not running (image dustynv/vllm:0.8.6-r36.4-cu128-24.04)"; \
+			echo "TIP: Run 'make setup' (which starts the container) or 'cd eval/tegra && ./open.sh 1'"; \
+			exit 1; \
+		fi; \
+		docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh prefill'; \
+	fi
 
+.PHONY: decode
 decode:
 	@if [ "$(DETECTED_PLATFORM)" != "tegra" ]; then \
 		echo "ERROR: Tegra platform required for synthetic benchmarks"; \
 		exit 1; \
 	fi
-	@CID=$$(docker ps --filter "ancestor=dustynv/vllm:0.8.6-r36.4-cu128-24.04" --format "{{.ID}}" | head -n1); \
-	if [ -z "$$CID" ]; then \
-		echo "ERROR: Tegra container not running (image dustynv/vllm:0.8.6-r36.4-cu128-24.04)"; \
-		echo "TIP: Run 'make setup' (which starts the container) or 'cd eval/tegra && ./open.sh 1'"; \
-		exit 1; \
-	fi; \
-	docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh decode'
+	@echo "Detecting environment..."; \
+	if ( [ -f "/run/systemd/container" ] || [ -f "/.dockerenv" ] || grep -qaE '(docker|containerd|cri-o|podman|kubepods)' /proc/1/cgroup 2>/dev/null ); then \
+		echo "Running inside container - executing directly"; \
+		cd eval/tegra/mmlu && ./launch.sh decode; \
+	else \
+		echo "Running on host - using docker exec"; \
+		CID=$$(docker ps --filter "ancestor=dustynv/vllm:0.8.6-r36.4-cu128-24.04" --format "{{.ID}}" | head -n1); \
+		if [ -z "$$CID" ]; then \
+			echo "ERROR: Tegra container not running (image dustynv/vllm:0.8.6-r36.4-cu128-24.04)"; \
+			echo "TIP: Run 'make setup' (which starts the container) or 'cd eval/tegra && ./open.sh 1'"; \
+			exit 1; \
+		fi; \
+		docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh decode'; \
+	fi
 
+.PHONY: tt-scaling
 tt-scaling:
 	@if [ "$(DETECTED_PLATFORM)" != "tegra" ]; then \
 		echo "ERROR: Tegra platform required for synthetic benchmarks"; \
 		exit 1; \
 	fi
-	@CID=$$(docker ps --filter "ancestor=dustynv/vllm:0.8.6-r36.4-cu128-24.04" --format "{{.ID}}" | head -n1); \
-	if [ -z "$$CID" ]; then \
-		echo "ERROR: Tegra container not running (image dustynv/vllm:0.8.6-r36.4-cu128-24.04)"; \
-		echo "TIP: Run 'make setup' (which starts the container) or 'cd eval/tegra && ./open.sh 1'"; \
-		exit 1; \
-	fi; \
-	docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh tt_scaling'
+	@echo "Detecting environment..."; \
+	if ( [ -f "/run/systemd/container" ] || [ -f "/.dockerenv" ] || grep -qaE '(docker|containerd|cri-o|podman|kubepods)' /proc/1/cgroup 2>/dev/null ); then \
+		echo "Running inside container - executing directly"; \
+		cd eval/tegra/mmlu && ./launch.sh tt_scaling; \
+	else \
+		echo "Running on host - using docker exec"; \
+		CID=$$(docker ps --filter "ancestor=dustynv/vllm:0.8.6-r36.4-cu128-24.04" --format "{{.ID}}" | head -n1); \
+		if [ -z "$$CID" ]; then \
+			echo "ERROR: Tegra container not running (image dustynv/vllm:0.8.6-r36.4-cu128-24.04)"; \
+			echo "TIP: Run 'make setup' (which starts the container) or 'cd eval/tegra && ./open.sh 1'"; \
+			exit 1; \
+		fi; \
+		docker exec -i "$$CID" bash -lc 'cd /workspace/edgereasoning/eval/tegra/mmlu && ./launch.sh tt_scaling'; \
+	fi
 
 synthetic: prefill decode tt-scaling
 

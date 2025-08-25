@@ -195,7 +195,7 @@ class NoReasoningEvaluator(BaseEvaluator):
                     self.confidence_scores.append(confidence)
                     
                     # Check correctness
-                    correct_answer = question_data.answer
+                    correct_answer = question_data.correct_answer
                     is_correct = predicted_choice == correct_answer
                     if is_correct:
                         correct_count += 1
