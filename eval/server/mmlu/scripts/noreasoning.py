@@ -75,7 +75,7 @@ def main():
         if args.seed is not None:
             suffix += f"_seed{args.seed}"
         
-        output_base = base_results_dir / f"mmlu_{timestamp}_{suffix}"
+        output_base = base_results_dir / f"{timestamp}_{suffix}"
         os.makedirs(output_base, exist_ok=True)
         
         try:
@@ -235,7 +235,7 @@ def main():
     }
     
     server_results_dir = results_config.get_result_base_dir('mmlu')
-    sweep_summary_file = server_results_dir / f"mmlu_{timestamp}_noreason_sweep_summary.json"
+    sweep_summary_file = server_results_dir / f"{timestamp}_noreason_sweep_summary.json"
     with open(sweep_summary_file, 'w') as f:
         json.dump(sweep_summary, f, indent=2)
     

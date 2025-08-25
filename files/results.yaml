@@ -12,45 +12,50 @@ existing_results:
       input_dir: "data/synthetic/gpu/prefill/"
       expected_models: ["1.5B", "8B", "14B"]
       
+    decode:
+      input_dir: "data/synthetic/gpu/decode/"
+      output_dir: "data/synthetic/gpu/decode/processed/"
+      expected_models: ["1.5B", "8B", "14B"]
+      
     cpu_decode_synthetic:
       name: "cpu_decode_synthetic"
       description: "CPU Decode with synthetic Dataset"
       input_dir: "data/synthetic/cpu/decode/"
-      output_dir: "data/synthetic/cpu/decode/processed_results/"
+      output_dir: "data/synthetic/cpu/decode/processed/"
       
     gpu_decode_synthetic:
       name: "gpu_decode_synthetic"
       description: "GPU Decode With Synthetic Dataset"
-      input_dir: "data/synthetic/gpu/decode/fine/"
-      output_dir: "data/synthetic/gpu/decode/fine/processed_results/"
+      input_dir: "data/synthetic/gpu/decode/"
+      output_dir: "data/synthetic/gpu/decode/processed/"
       
     gpu_scaling:
       name: "scaling"
       description: "GPU Scaling Dataset using synthetic"
       input_dir: "data/synthetic/gpu/scaling/"
-      output_dir: "data/synthetic/gpu/scaling/processed_results/"
+      output_dir: "data/synthetic/gpu/scaling/processed/"
       
   mmlu:
     # MMLU Results - CPU (Tegra)
     cpu_decode_mmlu:
       name: "cpu_decode_mmlu"
       description: "CPU Decode with MMLU Dataset"
-      input_dir: "data/mmlu/cpu/decodeall/"
-      output_dir: "data/mmlu/cpu/decodeall/processed_results/"
+      input_dir: "data/mmlu/cpu/decode/"
+      output_dir: "data/mmlu/cpu/decode/processed/"
       
     # MMLU Results - GPU (Tegra)
     gpu_decode_mmlu:
       name: "gpu_decode_mmlu"
       description: "GPU Decode With All MMLU Dataset"
-      input_dir: "data/mmlu/gpu/decodeall/"
-      output_dir: "data/mmlu/gpu/decodeall/processed_results/"
+      input_dir: "data/mmlu/gpu/decode/"
+      output_dir: "data/mmlu/gpu/decode/processed/"
       
     # MMLU Results - Server
     server_mmlu:
       name: "server_mmlu"
       description: "Server MMLU Evaluation Results"
       input_dir: "data/mmlu/server/"
-      output_dir: "data/mmlu/server/processed_results/"
+      output_dir: "data/mmlu/server/processed/"
       
   planner:
     # Planner Results - Server
@@ -58,7 +63,7 @@ existing_results:
       name: "server_planner"
       description: "Server Planner Evaluation Results"
       input_dir: "data/planner/server/"
-      output_dir: "data/planner/server/processed_results/"
+      output_dir: "data/planner/server/processed/"
 
 # ===========================
 # New Results Output
@@ -72,8 +77,8 @@ results:
       output_dir: "data/synthetic/gpu/prefill/processed/"
       
     decode:
-      input_dir: "data/synthetic/gpu/decode/fine/"
-      output_dir: "data/synthetic/gpu/decode/fine/processed/"
+      input_dir: "data/synthetic/gpu/decode/"
+      output_dir: "data/synthetic/gpu/decode/processed/"
       
     scaling:
       input_dir: "data/synthetic/gpu/scaling/"

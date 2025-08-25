@@ -3,7 +3,7 @@ import json, platform, subprocess, shutil, sys, os
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
-from setup import HardwareDetector
+from scripts.bootstrap import HardwareDetector
 
 def get_env_info(output_format="json"):
     """Get comprehensive environment information."""

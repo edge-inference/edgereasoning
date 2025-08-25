@@ -12,7 +12,6 @@ import json, os, sys, pathlib
 from datetime import datetime
 from functools import lru_cache
 
-# Ensure repository paths (where evaluate_*.py may live) are on PYTHONPATH
 PROJECT_ROOT = pathlib.Path(__file__).resolve().parents[5]
 
 # Load Natural-Plan eval dir from central loader

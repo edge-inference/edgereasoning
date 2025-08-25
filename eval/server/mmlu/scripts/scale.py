@@ -48,7 +48,7 @@ def main():
     if args.seed is not None:
         suffix += f"_seed{args.seed}"
     
-    output_base = base_results_dir / f"mmlu_{timestamp}_{suffix}"
+    output_base = base_results_dir / f"{timestamp}_{suffix}"
     os.makedirs(output_base, exist_ok=True)
     
     print("Starting Scale MMLU Evaluation - ALL SUBJECTS")
