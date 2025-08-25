@@ -6,7 +6,7 @@ Used for result storage and post-processing paths
 import yaml
 import pathlib
 from typing import Dict, List, Any, Optional
-from setup import HardwareDetector
+from scripts.bootstrap import HardwareDetector
 
 class ResultsConfig:
     """Centralized results configuration manager"""

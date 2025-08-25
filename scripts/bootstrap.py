@@ -182,9 +182,9 @@ class EnvironmentSetup:
             subprocess.run([sys.executable, "-m", "pip", "install", "-r", str(requirements_file)])
         
         packages = {
-            "tegra": ["datasets", "pyyaml", "tqdm", "psutil", "pynvml", "matplotlib", "pandas", "numpy"],
+            "tegra": ["datasets", "pyyaml", "tqdm", "psutil", "pynvml", "matplotlib", "pandas", "numpy", "absl-py", "seaborn"],
             "server": [
-                "vllm",
+                "vllm==0.10.0",
                 "transformers",
                 "datasets",
                 "pyyaml",
@@ -193,7 +193,9 @@ class EnvironmentSetup:
                 "matplotlib",
                 "pandas",
                 "pynvml",
-                "numpy"
+                "numpy",
+                "absl-py",
+                "seaborn"
             ]
         }
         

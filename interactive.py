@@ -1,3 +1,9 @@
+"""
+This script is used to compare the estimated latency of different models interactively.
+Outputs table is displayed in the terminal.
+"""
+
+
 import latency_model
 
 def format_time(seconds):
@@ -103,10 +109,10 @@ def run_interactive_mode():
                 input_tokens, output_tokens = map(int, response.split(','))
                 print_model_comparison(input_tokens, output_tokens)
             else:
-                print("❌ input,output (e.g., '1000,300')")
+                print("X input,output (e.g., '1000,300')")
                 
         except ValueError:
-            print("❌ input,output (e.g., '1000,300')")
+            print("X input,output (e.g., '1000,300')")
         except KeyboardInterrupt:
             break
     

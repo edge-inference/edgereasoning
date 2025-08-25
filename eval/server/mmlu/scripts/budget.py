@@ -43,7 +43,7 @@ def main():
     if args.max_tokens:
         suffix += f'_{args.max_tokens}tok'
     
-    output_base = base_results_dir / f"mmlu_{timestamp}_{suffix}"
+    output_base = base_results_dir / f"{timestamp}_{suffix}"
     os.makedirs(output_base, exist_ok=True)
     
     
