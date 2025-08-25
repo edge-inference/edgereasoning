@@ -48,3 +48,9 @@ python plot_sweep.py           # Generate sweep plots
 python interactive.py          # Interactive analysis
 python latency_model.py        # Latency modeling
 ```
+
+## Missing packages after setup? Try manual install with your .venv activated and in project root.
+
+```bash
+pip install -r requirements.txt
+```

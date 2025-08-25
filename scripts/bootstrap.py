@@ -320,28 +320,28 @@ def main():
     try:
         setup.setup_common_env()
         
+        if not setup._is_in_venv():
+            print("")
+            print("WARNING: Not in a virtual environment!")
+            print("Consider creating one first:")
+            print("  make venv")
+            print("  source .venv/bin/activate")
+            print("  python scripts/bootstrap.py")
+            print("")
+            if not args.yes:
+                response = input("Continue anyway? (y/N): ").lower()
+                if response != 'y':
+                    print("Setup cancelled. Create venv first!")
+                    sys.exit(1)
+            else:
+                print("Continuing without venv (--yes flag provided)")
+                print("Note: This may cause package conflicts!")
+        
+        setup.install_dependencies(platform)
+        setup.verify_setup()
+        
         if platform == "tegra":
             setup.setup_tegra_container()
-        else:
-            if not setup._is_in_venv():
-                print("")
-                print("WARNING: Not in a virtual environment!")
-                print("Consider creating one first:")
-                print("  make venv")
-                print("  source .venv/bin/activate")
-                print("  python scripts/bootstrap.py")
-                print("")
-                if not args.yes:
-                    response = input("Continue anyway? (y/N): ").lower()
-                    if response != 'y':
-                        print("Setup cancelled. Create venv first!")
-                        sys.exit(1)
-                else:
-                    print("Continuing without venv (--yes flag provided)")
-                    print("Note: This may cause package conflicts!")
-            
-            setup.install_dependencies(platform)
-            setup.verify_setup()
         
         print("\n" + "=" * 60)
         print("Setup Complete!")
