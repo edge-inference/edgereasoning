@@ -8,6 +8,8 @@ import sys
 import json
 import argparse
 import traceback
+import signal
+import atexit
 from pathlib import Path
 from datetime import datetime
 
@@ -16,19 +18,23 @@ os.environ['VLLM_PROFILE'] = 'true'
 os.environ['VLLM_DETAILED_METRICS'] = 'true'
 os.environ['VLLM_REQUEST_METRICS'] = 'true'
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-sys.path.append(str(Path(__file__).parents[3]))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(str(Path(__file__).parents[4]))
 
 from src.evaluators.base_evaluator import BaseEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
+from src.utils.cleanup import setup_cleanup_handlers, register_model_for_cleanup, cleanup_all
 from loaders.benchmarks import get_benchmark_config
 from loaders.results import get_results_config
+from loaders.models import get_default_reasoning_model
+
+setup_cleanup_handlers()
 
 
 def main():
     """Run base evaluation on all subjects."""
     parser = argparse.ArgumentParser(description='Base MMLU Evaluation')
-    parser.add_argument('--model', default='deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B', help='Model path')
+    parser.add_argument('--model', default=None, help='Model path')
     parser.add_argument('--config', default='configs/base.yaml', help='Config file path')
     parser.add_argument('--max-tokens', type=int, help='Override max tokens (optional)')
     args = parser.parse_args()
@@ -36,17 +42,19 @@ def main():
     config = get_benchmark_config()
     results_config = get_results_config()
     
-    model_name = args.model.split('/')[-1] if '/' in args.model else args.model
+    # Use provided model or get default reasoning model
+    model_path = args.model if args.model else get_default_reasoning_model()
+    model_name = model_path.split('/')[-1] if '/' in model_path else model_path
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    base_results_dir = results_config.get_result_base_dir('mmlu', model_name=args.model)
+    base_results_dir = results_config.get_result_base_dir('mmlu', model_name=model_path)
     
     output_base = base_results_dir / 'base'
     os.makedirs(output_base, exist_ok=True)
 
     print("Starting Base MMLU Evaluation - ALL SUBJECTS")
     print("=================================================")
-    print(f"Model: {args.model}")
+    print(f"Model: {model_path}")
     print(f"Config: {args.config}")
     if args.max_tokens:
         print(f"Max tokens override: {args.max_tokens}")
@@ -60,7 +68,11 @@ def main():
 
         # Setup model once
         print("* Setting up model...")
-        evaluator.setup_model(args.model)
+        evaluator.setup_model(model_path)
+        
+        # Register model for cleanup
+        if hasattr(evaluator, 'model'):
+            register_model_for_cleanup(evaluator.model)
 
         loader = MMLULoader()
         all_subjects = loader.get_available_subjects()
@@ -77,7 +89,7 @@ def main():
             try:
                 subject_dir = os.path.join(output_base, subject)
                 result = evaluator.evaluate_subject(
-                    model_path=args.model,
+                    model_path=model_path,
                     subject=subject,
                     output_dir=subject_dir
                 )
@@ -108,7 +120,7 @@ def main():
             'overall_accuracy': overall_accuracy,
             'total_questions': total_questions,
             'total_correct': total_correct,
-            'output_base': output_base,
+            'output_base': str(output_base),
             'config_details': {
                 'name': evaluator.config.name,
                 'description': evaluator.config.description,
@@ -128,6 +140,8 @@ def main():
         print(f"ERROR: Full evaluation failed: {e}")
         traceback.print_exc()
         return False
+    finally:
+        cleanup_all()
 
 
 if __name__ == '__main__':

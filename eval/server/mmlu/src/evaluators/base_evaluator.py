@@ -289,3 +289,4 @@ class BaseEvaluator:
         if result.total_energy_j:
             print(f"Total Energy: {result.total_energy_j:.2f}J")
         print(f"{'='*60}")
+    
