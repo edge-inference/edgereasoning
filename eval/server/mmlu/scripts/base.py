@@ -40,11 +40,8 @@ def main():
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
     base_results_dir = results_config.get_result_base_dir('mmlu', model_name=args.model)
-    suffix = f'base_{model_name}'
-    if args.max_tokens:
-        suffix += f'_{args.max_tokens}tok'
     
-    output_base = base_results_dir / f"{timestamp}_{suffix}"
+    output_base = base_results_dir / 'base'
     os.makedirs(output_base, exist_ok=True)
 
     print("Starting Base MMLU Evaluation - ALL SUBJECTS")

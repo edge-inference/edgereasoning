@@ -28,14 +28,21 @@ typical mmlu evaluation results looks like one below
 
 ```
 results/
-├── TIMESTAMP_base_MODEL/
-│   ├── summary.json
-│   ├── anatomy/
-│   │   └── detailed_results_base_anatomy_TIMESTAMP.csv
-│   └── physics/
-│       └── detailed_results_base_physics_TIMESTAMP.csv
-├── TIMESTAMP_scale_MODEL_64samples_512tokens/
-└── TIMESTAMP_budget_MODEL_256tok/
+├── MODEL_NAME/
+│   ├── base/
+│   │   ├── summary.json
+│   │   ├── anatomy/
+│   │   │   └── detailed_results_base_anatomy_TIMESTAMP.csv
+│   │   └── physics/
+│   │       └── detailed_results_base_physics_TIMESTAMP.csv
+│   ├── scale/
+│   │   ├── summary.json
+│   │   └── anatomy/
+│   └── budget/
+│       ├── summary.json
+│       └── anatomy/
+└── ANOTHER_MODEL/
+    └── base/
 ```
 
 ## Outputs

@@ -37,18 +37,19 @@ class PredictionResult:
     generated_text: str
     
     # Token counts
-    input_tokens: int  # prompt_tokens
-    output_tokens: int  # completion_tokens
+    input_tokens: int
+    output_tokens: int
     
-    # Timing metrics (matching AIME evaluation format)
-    ttft: float  # Time to first token (ms)
-    decode_time: float  # Time for decoding after first token (ms)
-    total_time_ms: float  # Total inference time (ms)
-    tokens_per_second: float  # Calculated tokens/sec
+    # Timing metrics
+    ttft: float
+    decode_time: float
+    total_time_ms: float
+    tokens_per_second: float
     
     # Raw data for detailed analysis
-    raw_completion: Any = None  # Store VLLM RequestOutput
-    # Expose raw metrics and token ids for specialized instrumentation
+    raw_completion: Any = None
+    
+    # Expose raw metrics and token ids for instrumentation
     prompt_token_ids: List[int] = field(default_factory=list)
     token_ids: List[int] = field(default_factory=list)
     metrics: Any = None
@@ -56,22 +57,22 @@ class PredictionResult:
     # Legacy aliases for compatibility
     @property
     def prompt_tokens(self) -> int:
-        """Alias for input_tokens to match AIME format."""
+        """Alias for input_tokens."""
         return self.input_tokens
     
     @property
     def completion_tokens(self) -> int:
-        """Alias for output_tokens to match AIME format."""
+        """Alias for output_tokens."""
         return self.output_tokens
     
     @property
     def tokens_generated(self) -> int:
-        """Alias for output_tokens to match AIME format."""
+        """Alias for output_tokens."""
         return self.output_tokens
     
     @property
     def total_time(self) -> float:
-        """Total time in seconds (for AIME compatibility)."""
+        """Total time in seconds."""
         return self.total_time_ms / 1000.0
 
 
@@ -234,7 +235,7 @@ class VLLMModel:
         # Generate batch with real metrics collection
         completions = self.model.generate(prompts, sampling_params)
         
-        # Process results with standard vLLM metrics (like test_simple_metrics.py)
+        # Process results with standard vLLM metrics
         results = []
         for completion in completions:
             # Extract metrics using getattr approach
@@ -264,7 +265,7 @@ class VLLMModel:
             total_time_ms = total_time * 1000
             
             results.append(PredictionResult(
-                predicted_choice="",  # Will be extracted by evaluator
+                predicted_choice="",
                 generated_text=generated_text,
                 input_tokens=input_tokens,
                 output_tokens=output_tokens,
@@ -277,7 +278,7 @@ class VLLMModel:
                 token_ids=output_token_ids,
                 metrics=metrics
             ))
-        print(f"✅ Batch processing: {len(prompts)} prompts, avg TPS={sum(r.tokens_per_second for r in results)/len(results):.1f}")
+        print(f"✓ Batch processing: {len(prompts)} prompts, avg TPS={sum(r.tokens_per_second for r in results)/len(results):.1f}")
         return results
     
     def get_model_info(self) -> Dict[str, Any]:

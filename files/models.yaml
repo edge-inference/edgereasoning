@@ -1,0 +1,18 @@
+# Model Configuration
+reasoning_models:
+  "DeepSeek-R1-Distill-Qwen-1.5B": "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+  "DeepSeek-R1-Distill-Llama-8B": "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+  "DeepSeek-R1-Distill-Qwen-14B": "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+
+direct_models:
+  "Qwen2.5-1.5B-Instruct": "Qwen/Qwen2.5-1.5B-Instruct"
+  "Gemma-7B-IT": "google/gemma-7b-it"
+  "Granite-3.3-8B-Instruct": "ibm-granite/granite-3.3-8b-instruct"
+  "Mistral-NeMo-12B-Instruct": "nvidia/Mistral-NeMo-12B-Instruct"
+  "Phi-3-Medium-4K-Instruct": "microsoft/Phi-3-medium-4k-instruct"
+  "Qwen2.5-14B-Instruct": "Qwen/Qwen2.5-14B-Instruct"
+
+# Default models
+defaults:
+  reasoning: "DeepSeek-R1-Distill-Qwen-1.5B"
+  direct: "Qwen2.5-1.5B-Instruct"

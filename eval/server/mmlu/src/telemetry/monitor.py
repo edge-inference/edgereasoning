@@ -162,13 +162,13 @@ class TelemetryMonitor:
         if not self.metrics:
             raise RuntimeError("Monitoring not started")
             
-        # Extract comprehensive metrics from prediction result (matching AIME format)
+        # Extract comprehensive metrics from prediction result
         result_data = {
             # Basic token counts
             'input_tokens': getattr(prediction_result, 'input_tokens', 0),
             'output_tokens': getattr(prediction_result, 'output_tokens', 0),
             
-            # Detailed timing metrics (AIME format)
+            # Detailed timing metrics
             'ttft': getattr(prediction_result, 'ttft', 0),
             'decode_time': getattr(prediction_result, 'decode_time', 0),
             'total_time_ms': getattr(prediction_result, 'total_time_ms', 0),
@@ -257,7 +257,7 @@ class TelemetryMonitor:
                     metric['generated_text_length']
                 ])
                 
-        print(f"Performance metrics saved (AIME format): {self.performance_csv}")
+        print(f"Performance metrics saved: {self.performance_csv}")
         
     def _print_summary(self) -> None:
         """Print performance summary."""

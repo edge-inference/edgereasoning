@@ -33,7 +33,6 @@ run_evaluation() {
     echo "Working directory: $SCRIPT_DIR"
     echo ""
     
-    # Set output directory using centralized config
     export PYTHONPATH="$REPO_ROOT:$PYTHONPATH"
     OUTPUT_DIR="$REPO_ROOT/data/mmlu/server/"
     mkdir -p "$OUTPUT_DIR"
@@ -47,12 +46,16 @@ run_evaluation() {
             echo "* Running budget evaluation..."
             python scripts/budget.py ${model:+--model "$model"} ${max_tokens:+--max-tokens "$max_tokens"}
             ;;
-        "noreasoning"|"direct")
-            echo "* Running direct evaluation..."
+        "noreasoning")
+            echo "* Running no-reasoning evaluation..."
             python scripts/noreasoning.py ${model:+--model "$model"} ${max_tokens:+--max-tokens "$max_tokens"}
             ;;
+        "direct")
+            echo "* Running direct evaluation..."
+            python scripts/direct.py ${model:+--model "$model"} ${max_tokens:+--max-tokens "$max_tokens"}
+            ;;
         "scale")
-            echo "* Running scaling experiments..."
+            echo "* Running test time scaling experiments..."
             ./callers/scale.sh
             ;;
         *)

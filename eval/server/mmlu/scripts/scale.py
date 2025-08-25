@@ -40,15 +40,8 @@ def main():
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
     base_results_dir = results_config.get_result_base_dir('mmlu', model_name=args.model)
-    suffix = f"scale_{model_name}"
-    if args.num_samples:
-        suffix += f"_{args.num_samples}samples"
-    if args.token_budget:
-        suffix += f"_{args.token_budget}tokens"
-    if args.seed is not None:
-        suffix += f"_seed{args.seed}"
     
-    output_base = base_results_dir / f"{timestamp}_{suffix}"
+    output_base = base_results_dir / 'scale'
     os.makedirs(output_base, exist_ok=True)
     
     print("Starting Scale MMLU Evaluation - ALL SUBJECTS")
