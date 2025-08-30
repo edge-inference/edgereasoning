@@ -349,7 +349,7 @@ def main():
         print(f"Platform: {platform}")
         print()
         if platform == "server":
-            print("Next: make server")
+            print("Next: make server-mmlu")
         elif platform == "tegra":
             print("Next: cd eval/tegra && ./open.sh && ./launch.sh base")
         print("=" * 60)
