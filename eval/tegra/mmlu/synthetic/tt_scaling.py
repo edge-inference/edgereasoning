@@ -10,9 +10,13 @@ import sys
 import json
 import argparse
 from datetime import datetime
+from pathlib import Path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../..'))
+script_dir = Path(__file__).resolve().parent
+mmlu_root = script_dir.parent
+project_root = script_dir.parents[4]
+sys.path.insert(0, str(mmlu_root))
+sys.path.insert(0, str(project_root))
 
 from src.evaluators.scale_evaluator import ScaleEvaluator
 from src.data_loaders.custom_loader import CustomLoader

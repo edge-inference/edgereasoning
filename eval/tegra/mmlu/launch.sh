@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# cached models
-export HF_HUB_OFFLINE=1
-export TRANSFORMERS_OFFLINE=1
-export HF_DATASETS_OFFLINE=1
+# Allow online model downloads (set to 1 for offline mode)
+export HF_HUB_OFFLINE=0
+export TRANSFORMERS_OFFLINE=0
+export HF_DATASETS_OFFLINE=0
 
 rm run.log
 

@@ -11,12 +11,18 @@ import sys
 import json
 import argparse
 from datetime import datetime
+from pathlib import Path
 
-# Ensure project src directory is on PYTHONPATH
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+
+script_dir = Path(__file__).resolve().parent
+mmlu_root = script_dir.parent
+project_root = script_dir.parents[3]
+sys.path.insert(0, str(mmlu_root))
+sys.path.insert(0, str(project_root))
 
 from src.evaluators.base_evaluator import BaseEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
+from loaders.results import get_results_config
 
 
 def main():
@@ -26,7 +32,7 @@ def main():
     parser.add_argument('--config', default='configs/base.yaml', help='Config file path')
     parser.add_argument('--max-tokens', type=int, help='Override max tokens (optional)')
     parser.add_argument('--num-questions', type=int, default=100, help='Number of questions to evaluate per subject (optional)')
-    parser.add_argument('--cpu', action='store_true', help='Run model on CPU instead of GPU')
+    parser.add_argument('--cpu', action='store_true', help='Run model on CPU instead of GPU (default: GPU)')
     parser.add_argument('--no-flash-attention', action='store_true', help='Disable Flash Attention (use xformers instead)')
     args = parser.parse_args()
 
@@ -34,11 +40,14 @@ def main():
     config_path = args.config
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
 
+    results_config = get_results_config()
+    results_base_dir = results_config.get_result_base_dir('mmlu', 'tegra')
+    
     model_name = model_path.split('/')[-1] if '/' in model_path else model_path
-    output_base = f"./results/base_all_subjects_{timestamp}_{model_name}"
+    output_base = results_base_dir / f"base_all_subjects_{timestamp}_{model_name}"
     os.makedirs(output_base, exist_ok=True)
 
-    print("🔎 Starting Base MMLU Evaluation - ALL SUBJECTS")
+    print("> Starting Base MMLU Evaluation - ALL SUBJECTS")
     print("=================================================")
     print(f"Model: {model_path}")
     print(f"Config: {config_path}")
@@ -55,22 +64,20 @@ def main():
 
     try:
         evaluator = BaseEvaluator(config_path)
-        # Override max tokens if requested
         if args.max_tokens:
             evaluator.config.model['max_tokens'] = args.max_tokens
-        # Override num questions if requested
         if args.num_questions:
             evaluator.config.evaluation['num_questions'] = args.num_questions
 
         # Setup model once
-        print("🔧 Setting up model...")
-        evaluator.setup_model(model_path, cpu_mode=args.cpu)
+        print("* Setting up model...")
+        evaluator.setup_model(model_path)
 
         loader = MMLULoader()
         all_subjects = loader.get_available_subjects()
         questions_per_subject = args.num_questions if args.num_questions else "all available"
-        print(f"📚 Found {len(all_subjects)} subjects to evaluate")
-        print(f"📋 Questions per subject: {questions_per_subject}")
+        print(f"* Found {len(all_subjects)} subjects to evaluate")
+        print(f"* Questions per subject: {questions_per_subject}")
 
         successful = 0
         total_correct = 0
@@ -78,7 +85,7 @@ def main():
 
         for i, subject in enumerate(all_subjects, 1):
             print(f"\n{'='*60}")
-            print(f"🏃 [{i}/{len(all_subjects)}] Evaluating subject: {subject}")
+            print(f"> [{i}/{len(all_subjects)}] Evaluating subject: {subject}")
             print(f"{'='*60}")
             try:
                 subject_dir = os.path.join(output_base, subject)
@@ -87,16 +94,16 @@ def main():
                     subject=subject,
                     output_dir=subject_dir
                 )
-                print(f"✅ {subject} completed! Questions: {result.total_questions}, Accuracy: {result.accuracy:.2%}")
+                print(f"✓ {subject} completed! Questions: {result.total_questions}, Accuracy: {result.accuracy:.2%}")
                 successful += 1
                 total_correct += result.correct_answers
                 total_questions += result.total_questions
             except Exception as e:
-                print(f"❌ {subject} failed: {e}")
+                print(f"x {subject} failed: {e}")
 
         overall_accuracy = total_correct / total_questions if total_questions else 0.0
         print(f"\n{'='*60}")
-        print("📊 BASE EVALUATION - ALL SUBJECTS SUMMARY")
+        print("> BASE EVALUATION - ALL SUBJECTS SUMMARY")
         print(f"Model: {model_path}")
         print(f"Successful: {successful}/{len(all_subjects)}")
         print(f"Overall Accuracy: {overall_accuracy:.2%}")
@@ -123,11 +130,11 @@ def main():
         summary_file = os.path.join(output_base, 'summary.json')
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2)
-        print(f"📋 Summary saved to: {summary_file}")
+        print(f"* Summary saved to: {summary_file}")
 
         return successful == len(all_subjects)
     except Exception as e:
-        print(f"❌ Full evaluation failed: {e}")
+        print(f"x Full evaluation failed: {e}")
         import traceback; traceback.print_exc()
         return False
 

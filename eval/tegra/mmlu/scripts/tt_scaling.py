@@ -11,11 +11,17 @@ import sys
 import json
 import argparse
 from datetime import datetime
+from pathlib import Path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+script_dir = Path(__file__).resolve().parent
+mmlu_root = script_dir.parent
+project_root = script_dir.parents[3]
+sys.path.insert(0, str(mmlu_root))
+sys.path.insert(0, str(project_root))
 
 from src.evaluators.scale_evaluator import ScaleEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
+from loaders.results import get_results_config
 
 
 def main():
@@ -32,6 +38,9 @@ def main():
     config_path = args.config
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
+    results_config = get_results_config()
+    results_base_dir = results_config.get_result_base_dir('mmlu', 'tegra')
+    
     model_name = model_path.split('/')[-1] if '/' in model_path else model_path
     output_suffix = f"_{model_name}"
     
@@ -41,10 +50,10 @@ def main():
         output_suffix += f"_{args.token_budget}tokens"
     if args.seed is not None:
         output_suffix += f"_seed{args.seed}"
-    output_base = f"./results/scale_all_subjects_{timestamp}{output_suffix}"
+    output_base = results_base_dir / f"scale_all_subjects_{timestamp}{output_suffix}"
     os.makedirs(output_base, exist_ok=True)
     
-    print("🚀 Starting Scale MMLU Evaluation - ALL SUBJECTS")
+    print("↑ Starting Scale MMLU Evaluation - ALL SUBJECTS")
     print("================================================")
     print(f"Model: {model_path}")
     print(f"Config: {config_path}")
@@ -70,19 +79,19 @@ def main():
         if args.seed:
             evaluator.config.model['seed'] = args.seed
         
-        print("🔧 Setting up model...")
+        print("+ Setting up model...")
         evaluator.setup_model(model_path)
         
         loader = MMLULoader()
         all_subjects = loader.get_available_subjects()
         
-        print(f"📚 Found {len(all_subjects)} subjects to evaluate")
+        print(f"∈ Found {len(all_subjects)} subjects to evaluate")
         print(f"Subjects: {', '.join(all_subjects[:5])}..." if len(all_subjects) > 5 else f"Subjects: {', '.join(all_subjects)}")
         
         samples_per_question = args.num_samples or evaluator.config.scaling['num_samples']
         total_samples_expected = len(all_subjects) * samples_per_question
-        print(f"🎯 Test-time scaling: {samples_per_question} samples per question")
-        print(f"🔢 Expected total samples: ~{total_samples_expected} (approximate)")
+        print(f"◦ Test-time scaling: {samples_per_question} samples per question")
+        print(f"# Expected total samples: ~{total_samples_expected} (approximate)")
         print("")
         
         successful_subjects = 0
@@ -93,7 +102,7 @@ def main():
         
         for i, subject in enumerate(all_subjects, 1):
             print(f"\n{'='*60}")
-            print(f"🏃 [{i}/{len(all_subjects)}] Evaluating subject: {subject}")
+            print(f"→ [{i}/{len(all_subjects)}] Evaluating subject: {subject}")
             print(f"{'='*60}")
             
             try:
@@ -105,7 +114,7 @@ def main():
                     output_dir=subject_output_dir
                 )
                 
-                print(f"✅ {subject} completed!")
+                print(f"✓ {subject} completed!")
                 print(f"   Accuracy: {result.accuracy:.2%}")
                 print(f"   Correct: {result.correct_answers}/{result.total_questions}")
                 print(f"   Avg Time/Question: {result.avg_time_per_question:.1f}ms")
@@ -128,13 +137,13 @@ def main():
                 total_questions += result.total_questions
                 
             except Exception as e:
-                print(f"❌ {subject} failed: {e}")
+                print(f"✗ {subject} failed: {e}")
         
         overall_accuracy = total_correct / total_questions if total_questions > 0 else 0.0
         avg_voting_confidence = sum(voting_confidences) / len(voting_confidences) if voting_confidences else 0.0
         
         print(f"\n{'='*60}")
-        print("📊 SCALE EVALUATION - ALL SUBJECTS SUMMARY")
+        print("≡ SCALE EVALUATION - ALL SUBJECTS SUMMARY")
         print(f"{'='*60}")
         print(f"Model: {model_path}")
         print(f"Total Subjects: {len(all_subjects)}")
@@ -193,18 +202,18 @@ def main():
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2)
         
-        print(f"\n📋 Summary saved to: {summary_file}")
-        print(f"📁 All results in: {output_base}")
+        print(f"\n⟫ Summary saved to: {summary_file}")
+        print(f"⌗ All results in: {output_base}")
         
         if successful_subjects == len(all_subjects):
-            print(f"\n🎉 All {len(all_subjects)} subjects completed successfully!")
+            print(f"\n★ All {len(all_subjects)} subjects completed successfully!")
             return True
         else:
-            print(f"\n⚠️  {successful_subjects}/{len(all_subjects)} subjects completed successfully")
+            print(f"\n! {successful_subjects}/{len(all_subjects)} subjects completed successfully")
             return False
         
     except Exception as e:
-        print(f"❌ Full evaluation failed: {e}")
+        print(f"✗ Full evaluation failed: {e}")
         import traceback
         traceback.print_exc()
         return False

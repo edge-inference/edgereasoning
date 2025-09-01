@@ -11,11 +11,17 @@ import sys
 import json
 import argparse
 from datetime import datetime
+from pathlib import Path
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+script_dir = Path(__file__).resolve().parent
+mmlu_root = script_dir.parent
+project_root = script_dir.parents[3]
+sys.path.insert(0, str(mmlu_root))
+sys.path.insert(0, str(project_root))
 
 from src.evaluators.budget_evaluator import BudgetEvaluator
 from src.data_loaders.mmlu_loader import MMLULoader
+from loaders.results import get_results_config
 
 
 def main():
@@ -32,17 +38,19 @@ def main():
     config_path = args.config
     timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
     
-    # Output directory setup
+    results_config = get_results_config()
+    results_base_dir = results_config.get_result_base_dir('mmlu', 'tegra')
+    
     model_name = model_path.split('/')[-1] if '/' in model_path else model_path
     output_suffix = f"_{model_name}"
     
     if args.max_tokens:
         output_suffix += f"_{args.max_tokens}tok"
-    output_base = f"./results/budget_all_subjects_{timestamp}{output_suffix}"
+    output_base = results_base_dir / f"budget_all_subjects_{timestamp}{output_suffix}"
     os.makedirs(output_base, exist_ok=True)
     
     
-    print("💰 Starting Budget MMLU Evaluation - ALL SUBJECTS")
+    print("$ Starting Budget MMLU Evaluation - ALL SUBJECTS")
     print("=================================================")
     print(f"Model: {model_path}")
     print(f"Config: {config_path}")
@@ -60,61 +68,52 @@ def main():
         if args.max_tokens:
             evaluator.config.model['max_tokens'] = args.max_tokens
         
-        # Setup model ONCE
-        print("🔧 Setting up model...")
+        print("+ Setting up model...")
         evaluator.setup_model(model_path)
         
-        # Get all available subjects
         loader = MMLULoader()
         all_subjects = loader.get_available_subjects()
         
-        print(f"📚 Found {len(all_subjects)} subjects to evaluate")
+        print(f"∈ Found {len(all_subjects)} subjects to evaluate")
         print(f"Subjects: {', '.join(all_subjects[:5])}..." if len(all_subjects) > 5 else f"Subjects: {', '.join(all_subjects)}")
         print("")
         
-        
-        # Simple counters only
         successful_subjects = 0
         total_correct = 0
         total_questions = 0
         
-        # Run evaluation for each subject (MODEL LOADED)
         for i, subject in enumerate(all_subjects, 1):
             print(f"\n{'='*60}")
-            print(f"🏃 [{i}/{len(all_subjects)}] Evaluating subject: {subject}")
+            print(f"→ [{i}/{len(all_subjects)}] Evaluating subject: {subject}")
             print(f"{'='*60}")
             
             try:
-                # Create subject-specific output directory
                 subject_output_dir = os.path.join(output_base, subject)
                 
-                # Run evaluation (uses already loaded model)
                 result = evaluator.evaluate_subject(
                     model_path=model_path,
                     subject=subject,
                     output_dir=subject_output_dir
                 )
                 
-                # Print subject results
-                print(f"✅ {subject} completed!")
+                print(f"✓ {subject} completed!")
                 print(f"   Accuracy: {result.accuracy:.2%}")
                 print(f"   Correct: {result.correct_answers}/{result.total_questions}")
                 print(f"   Avg Time/Question: {result.avg_time_per_question:.1f}ms")
                 
-                # overall tracking 
                 successful_subjects += 1
                 total_correct += result.correct_answers
                 total_questions += result.total_questions
                 
             except Exception as e:
-                print(f"❌ {subject} failed: {e}")
+                print(f"✗ {subject} failed: {e}")
         
         # overall metrics
         overall_accuracy = total_correct / total_questions if total_questions > 0 else 0.0
         
         # summary
         print(f"\n{'='*60}")
-        print("📊 BUDGET EVALUATION - ALL SUBJECTS SUMMARY")
+        print("≡ BUDGET EVALUATION - ALL SUBJECTS SUMMARY")
         print(f"{'='*60}")
         print(f"Model: {model_path}")
         print(f"Total Subjects: {len(all_subjects)}")
@@ -158,19 +157,18 @@ def main():
         with open(summary_file, 'w') as f:
             json.dump(summary, f, indent=2)
         
-        print(f"\n📋 Summary saved to: {summary_file}")
-        print(f"📁 All results in: {output_base}")
+        print(f"\n⟫ Summary saved to: {summary_file}")
+        print(f"⌗ All results in: {output_base}")
         
-        # Final status
         if successful_subjects == len(all_subjects):
-            print(f"\n🎉 All {len(all_subjects)} subjects completed successfully!")
+            print(f"\n★ All {len(all_subjects)} subjects completed successfully!")
             return True
         else:
-            print(f"\n⚠️  {successful_subjects}/{len(all_subjects)} subjects completed successfully")
+            print(f"\n! {successful_subjects}/{len(all_subjects)} subjects completed successfully")
             return False
         
     except Exception as e:
-        print(f"❌ Full evaluation failed: {e}")
+        print(f"✗ Full evaluation failed: {e}")
         import traceback
         traceback.print_exc()
         return False

@@ -2,7 +2,8 @@
 # Scale evaluation sweep for Jetson Orin - Single GPU, 3 Models, 3 Seeds
 
 # Base directories
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
+REPO_ROOT="$(realpath "$SCRIPT_DIR/../../../../..")"
 
 # GPU assignment (single GPU on Jetson)
 export CUDA_VISIBLE_DEVICES=0
@@ -14,7 +15,6 @@ RESUME_SEED=${RESUME_SEED:-""}
 RESUME_SAMPLE_SIZE=${RESUME_SAMPLE_SIZE:-""}
 CHECKPOINT_FILE="scale_sweep_jetson_checkpoint.txt"
 
-# Setup logging
 LOG_FILE="scale_sweep_jetson_$(date +%Y%m%d_%H%M%S).log"
 exec 1> >(tee -a "$LOG_FILE")
 exec 2> >(tee -a "$LOG_FILE" >&2)
@@ -34,12 +34,26 @@ if [[ -n "$RESUME_MODEL" ]]; then
 fi
 echo "========================================"
 
-# DeepSeek R1 Distill models (3 models)
-MODELS=(
-    "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
-    "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
-    "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
-)
+# List of models to evaluate - read from models.txt
+MODELS_FILE="$SCRIPT_DIR/../models.txt"
+if [[ -f "$MODELS_FILE" ]]; then
+    echo "* Reading models from: $MODELS_FILE"
+    mapfile -t MODELS < "$MODELS_FILE"
+    FILTERED_MODELS=()
+    for model in "${MODELS[@]}"; do
+        if [[ -n "$model" && ! "$model" =~ ^[[:space:]]*# ]]; then
+            FILTERED_MODELS+=("$model")
+        fi
+    done
+    MODELS=("${FILTERED_MODELS[@]}")
+else
+    echo "! models.txt not found at: $MODELS_FILE, using default models"
+    MODELS=(
+        "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
+        "deepseek-ai/DeepSeek-R1-Distill-Llama-8B"
+        "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+    )
+fi
 
 # 3 seeds for reproducibility
 SEEDS=(42 1337 2023)
@@ -139,16 +153,16 @@ for MODEL_PATH in "${MODELS[@]}"; do
             --max-subjects 30 \
             --config "$TEMP_CONFIG"; then
           
-          echo -e "\033[1;32m✓ JETSON: Scale evaluation completed for ${SAMPLES} samples, ${TOKEN_BUDGET} tokens\033[0m"
+          echo "+ SCALE: Scale evaluation completed for ${SAMPLES} samples, ${TOKEN_BUDGET} tokens"
           
           rm -f "$TEMP_CONFIG"
           
           SAMPLE_END_TIME=$(date +%s)
           DURATION=$((SAMPLE_END_TIME - SAMPLE_START_TIME))
           SUCCESSFUL_RUNS+=("JETSON:${MODEL_NAME}:${SEED}:${SAMPLES}:${TOKEN_BUDGET} (${DURATION}s)")
-          echo -e "\033[1;32m✓ JETSON: Completed ${SAMPLES} samples, ${TOKEN_BUDGET} tokens in ${DURATION}s\033[0m"
+          echo "+ SCALE: Completed ${SAMPLES} samples, ${TOKEN_BUDGET} tokens in ${DURATION}s"
           
-          echo "🧹 Forcing memory cleanup..."
+          echo "+ Forcing memory cleanup..."
           python3 -c "
 import gc
 gc.collect()
@@ -164,9 +178,9 @@ except ImportError:
 "
           
         else
-            echo -e "\033[1;31m✗ JETSON: Scale evaluation failed for ${SAMPLES} samples, ${TOKEN_BUDGET} tokens\033[0m"
+            echo "✗ SCALE: Scale evaluation failed for ${SAMPLES} samples, ${TOKEN_BUDGET} tokens"
             FAILED_RUNS+=("JETSON:${MODEL_NAME}:${SEED}:${SAMPLES}:${TOKEN_BUDGET} (evaluation failed)")
-            echo -e "\033[1;33m⚠ JETSON: Continuing with next sample size...\033[0m"
+            echo "! SCALE: Continuing with next sample size..."
             
             rm -f "$TEMP_CONFIG"
             
@@ -203,7 +217,7 @@ echo "Log saved to: $LOG_FILE"
 # Final summary
 TOTAL_RUNS=$((${#SUCCESSFUL_RUNS[@]} + ${#FAILED_RUNS[@]}))
 echo ""
-echo "📊 FINAL SUMMARY:"
+echo "≡ FINAL SUMMARY:"
 echo "Total Models: ${#MODELS[@]}"
 echo "Total Seeds: ${#SEEDS[@]}"
 echo "Total Token Budgets: ${#TOKEN_BUDGETS[@]}"
@@ -217,9 +231,9 @@ echo "Success Rate: $(( ${#SUCCESSFUL_RUNS[@]} * 100 / TOTAL_RUNS ))%"
 rm -f "$CHECKPOINT_FILE"
 
 if [ ${#FAILED_RUNS[@]} -eq 0 ]; then
-    echo -e "\033[1;32m🎉 JETSON: All scale evaluations completed successfully!\033[0m"
+    echo "★ SCALE: All scale evaluations completed successfully!"
     exit 0
 else
-    echo -e "\033[1;33m⚠ JETSON: Sweep completed with ${#FAILED_RUNS[@]} failures\033[0m"
+    echo "! SCALE: Sweep completed with ${#FAILED_RUNS[@]} failures"
     exit 1
 fi

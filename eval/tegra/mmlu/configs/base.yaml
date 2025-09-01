@@ -2,12 +2,12 @@
 # 4096 token reasoning evaluation with comprehensive analysis
 
 name: "base"
-description: "Full reasoning evaluation with 4096 token limit"
+description: "Full reasoning evaluation with 3072 token limit"
 
 # Model settings
 model:
   max_tokens: 1280
-  max_model_len: 4416
+  max_model_len: 3072
   temperature: 0.6
   top_p: 0.95
   tensor_parallel_size: 1
