@@ -113,7 +113,7 @@ def main():
 
         summary = {
             'model': model_path,
-            'config': config_path,
+            'config': args.config,
             'timestamp': timestamp,
             'total_subjects': len(all_subjects),
             'successful_subjects': successful,
@@ -124,10 +124,21 @@ def main():
             'config_details': {
                 'name': evaluator.config.name,
                 'description': evaluator.config.description,
-                'model_settings': evaluator.config.model,
+                'model_settings': {
+                    'max_tokens': evaluator.config.model.get('max_tokens'),
+                    'max_model_len': evaluator.config.model.get('max_model_len'),
+                    'temperature': evaluator.config.model.get('temperature'),
+                    'top_p': evaluator.config.model.get('top_p'),
+                    'tensor_parallel_size': evaluator.config.model.get('tensor_parallel_size'),
+                    'gpu_memory_utilization': evaluator.config.model.get('gpu_memory_utilization')
+                },
                 'evaluation_settings': evaluator.config.evaluation,
-                'prompting_strategy': evaluator.config.prompting,
-                'output_settings': evaluator.config.output,
+                'prompting_strategy': {
+                    'template_type': evaluator.config.prompting.get('template_type'),
+                    'system_prompt': evaluator.config.prompting.get('system_prompt'),
+                    'user_template': evaluator.config.prompting.get('user_template')
+                },
+                'output_settings': evaluator.config.output
             }
         }
         summary_file = os.path.join(output_base, 'summary.json')
