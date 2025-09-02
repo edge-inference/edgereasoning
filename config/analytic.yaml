@@ -8,7 +8,10 @@ models:
     - DSR1-Llama-8B
     - DSR1-Qwen-1.5B  
     - DSR1-Qwen-14B
-
+    - DSR1-8B-llmc-awq-w4
+    - DSR1-14B-llmc-awq-w4
+    - DSR1-32B-llmc-awq-w4
+    
 # ===========================
 # Token Length Configurations
 # ===========================

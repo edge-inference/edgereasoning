@@ -10,12 +10,12 @@ existing_results:
   synthetic:
     prefill:
       input_dir: "data/synthetic/gpu/prefill/"
-      expected_models: ["1.5B", "8B", "14B"]
+      expected_models: ["1.5B", "8B", "14B", "DSR1-8B-llmc-awq-w4"]
       
     decode:
       input_dir: "data/synthetic/gpu/decode/"
       output_dir: "data/synthetic/gpu/decode/processed/"
-      expected_models: ["1.5B", "8B", "14B"]
+      expected_models: ["1.5B", "8B", "14B", "DSR1-8B-llmc-awq-w4"]
       
     cpu_decode_synthetic:
       name: "cpu_decode_synthetic"
@@ -115,7 +115,7 @@ processing:
   default_consolidate_only: false
   
   prefill:
-    expected_models: ["1.5B", "8B", "14B"]
+    expected_models: ["1.5B", "8B", "14B", "DSR1-8B-llmc-awq-w4"]
     
   decode:
     analysis_metrics: ["latency", "power", "energy"]

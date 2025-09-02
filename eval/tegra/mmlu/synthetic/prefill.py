@@ -26,7 +26,8 @@ sys.path.append('/workspace/edgereasoning')
 from loaders.benchmarks import get_benchmark_config
 from loaders.results import get_results_config
 
-LLAMA_INPUT_TOKEN_LIST = [1, 16, 32, 64, 96] + list(range(128, 2048 + 128, 128))
+# LLAMA_INPUT_TOKEN_LIST = [1, 16, 32, 64, 96] + list(range(128, 4096 + 128, 128))
+LLAMA_INPUT_TOKEN_LIST = list(range(2176, 4096 + 128, 128))
 LLAMA_OUTPUT_TOKEN_LIST = [1]  
 
 QWEN_INPUT_TOKEN_LIST = LLAMA_INPUT_TOKEN_LIST.copy()
@@ -76,7 +77,7 @@ def main():
     parser = argparse.ArgumentParser(description='Controlled input/output sweep')
     parser.add_argument('--models_file', default='models.txt', help='File with model names')
     parser.add_argument('--config', default='configs/prefill.yaml', help='Config file')
-    parser.add_argument('--output_dir', default='./results/controlled_sweep', help='Output directory')
+    parser.add_argument('--output_dir', default='../../../../data/synthetic/gpu/prefill', help='Output directory')
     parser.add_argument('--warmup_runs', type=int, default=1, help='Number of warm-up predictions (not timed) before each measured run')
     args = parser.parse_args()
 

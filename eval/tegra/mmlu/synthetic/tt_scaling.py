@@ -56,6 +56,7 @@ def main():
     parser.add_argument('--token-budget', type=int, help='Override token budget')
     parser.add_argument('--input-tokens', type=int, default=synthetic_settings.get('default_input_tokens'), help='Input token length to test')
     parser.add_argument('--seed', type=int, default=eval_defaults.get('default_seed'), help='Random seed for reproducibility')
+    parser.add_argument('--output_dir', default='../../../../data/synthetic/gpu/tt_scaling', help='Output directory')
     args = parser.parse_args()
     
     # Configuration

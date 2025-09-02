@@ -41,12 +41,12 @@ datasets:
 # ===========================
 model_families:
   qwen:
-    indicators: ["qwen", "Qwen", "QWEN"]
+    indicators: ["qwen", "Qwen", "QWEN", "DSR1-1.5B", "DSR1-14B"]
     synthetic_dataset: "qwen"
     default_config: "configs/qwen_scale.yaml"
     
   llama:
-    indicators: ["llama", "Llama", "LLAMA"]
+    indicators: ["llama", "Llama", "LLAMA", "DSR1-8B"]
     synthetic_dataset: "llama" 
     default_config: "configs/llama_scale.yaml"
     

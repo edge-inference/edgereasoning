@@ -15,7 +15,7 @@ try:
 except ImportError:
     TORCH_AVAILABLE = False
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from src.data_loaders.custom_loader import CustomLoader
 from src.evaluators.base_evaluator import BaseEvaluator
 from src.evaluators.budget_evaluator import BudgetEvaluator
@@ -24,7 +24,9 @@ sys.path.append('/workspace/edgereasoning')
 from loaders.benchmarks import get_benchmark_config
 from loaders.results import get_results_config
 
-LLAMA_INPUT_TOKEN_LIST = list(range(256, 1024 + 128, 128))
+# LLAMA_INPUT_TOKEN_LIST = list(range(128, 1024 + 128, 128))
+# temp: only run 128 to fill the missing 8B decode length
+LLAMA_INPUT_TOKEN_LIST = [128]
 LLAMA_OUTPUT_TOKEN_LIST = [1, 16, 32, 64, 96] + list(range(128, 2048 + 128, 128))
 
 QWEN_INPUT_TOKEN_LIST = list(range(128, 1024 + 128, 128))
@@ -74,7 +76,7 @@ def main():
     parser = argparse.ArgumentParser(description='Controlled input/output sweep')
     parser.add_argument('--models_file', default='models.txt', help='File with model names')
     parser.add_argument('--config', default='configs/prefill.yaml', help='Config file')
-    parser.add_argument('--output_dir', default='./results/decode', help='Output directory')
+    parser.add_argument('--output_dir', default='../../../../data/synthetic/gpu/decode', help='Output directory')
     parser.add_argument('--warmup_runs', type=int, default=1, help='Number of warm-up predictions (not timed) before each measured run')
     args = parser.parse_args()
 
