@@ -73,8 +73,8 @@ def main():
         return False
     
     # Output directory setup using benchmark config
-    model_name = model_path.split('/')[-1] if '/' in model_path else model_path
-    output_suffix = f"_{model_name}"
+    model_display_name = bench_config.get_model_display_name(model_path)
+    output_suffix = f"_{model_display_name}"
     
     if args.num_samples:
         output_suffix += f"_{args.num_samples}samples"

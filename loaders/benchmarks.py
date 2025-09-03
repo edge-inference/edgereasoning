@@ -1,14 +1,15 @@
 """
 Benchmark Configuration Loader
-Centralized management for benchmark locations and settings
+management for benchmark locations and settings
 """
 
 import yaml
 import pathlib
 from typing import Dict, List, Any, Optional
+import re
 
 class BenchmarkConfig:
-    """Centralized benchmark configuration manager"""
+    """benchmark configuration manager"""
     
     def __init__(self, config_path: str = "files/benchmarks.yaml"):
         repo_root = pathlib.Path(__file__).parent.parent
@@ -76,14 +77,35 @@ class BenchmarkConfig:
     # Model Family Detection
     # ===========================
     def detect_model_family(self, model_name: str) -> Optional[str]:
-        """Detect model family from model name"""
+        """Detect model family from model name.
+        Prefer families that define a display_name and the most specific indicator.
+        Normalize separators so '-' and '_' are treated the same.
+        """
         families = self._config['model_families']
-        
+        best_family: Optional[str] = None
+        best_indicator_len: int = -1
+        best_has_display: bool = False
+
+        def _norm(text: str) -> str:
+            import re
+            return re.sub(r"[^a-z0-9]", "", text.lower())
+
+        norm_model = _norm(model_name)
+
         for family, config in families.items():
             indicators = config.get('indicators', [])
-            if any(indicator in model_name for indicator in indicators):
-                return family
-        return None
+            has_display = 'display_name' in config and bool(config['display_name'])
+            for indicator in indicators:
+                if indicator and _norm(indicator) in norm_model:
+                    ind_len = len(indicator)
+                    if (has_display and not best_has_display) or (
+                        has_display == best_has_display and ind_len > best_indicator_len
+                    ):
+                        best_family = family
+                        best_indicator_len = ind_len
+                        best_has_display = has_display
+
+        return best_family
     
     def get_model_family_config(self, family: str) -> Dict[str, Any]:
         """Get configuration for specific model family"""
@@ -139,6 +161,19 @@ class BenchmarkConfig:
             family_config = self.get_model_family_config(family)
             return family_config.get('default_config', self.get_evaluation_defaults()['default_config'])
         return self.get_evaluation_defaults()['default_config']
+    
+    def get_model_display_name(self, model_name: str) -> str:
+        """Get display name for model"""
+        family = self.detect_model_family(model_name)
+        if family:
+            family_config = self.get_model_family_config(family)
+            display_name = family_config.get('display_name')
+            if display_name:
+                return display_name
+        
+        # Fallback to extracting suffix from model name
+        match = re.search(r'([\d.]+B|Max)$', model_name)
+        return match.group(1) if match else model_name.split('/')[-1]
 
 # Global benchmark configuration instance
 _benchmark_config_instance = None

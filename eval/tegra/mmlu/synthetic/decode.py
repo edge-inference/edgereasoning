@@ -65,9 +65,9 @@ def get_model_config(model_name):
         }
 
 def extract_model_suffix(model_name):
-    import re
-    match = re.search(r'([\d.]+B|Max)$', model_name)
-    return match.group(1) if match else model_name.split('/')[-1]
+    """Extract model suffix for directory naming using benchmark config"""
+    config = get_benchmark_config()
+    return config.get_model_display_name(model_name)
 
 
 def main():

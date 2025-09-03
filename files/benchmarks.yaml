@@ -24,7 +24,7 @@ datasets:
     decode:
       qwen: "benchmarks/synthetic/decode/synthetic_qwen.csv"
       llama: "benchmarks/synthetic/decode/synthetic_llama.csv"
-    
+
   mmlu:
     # Loaded directly via HuggingFace datasets
     
@@ -43,17 +43,59 @@ model_families:
   qwen:
     indicators: ["qwen", "Qwen", "QWEN"]
     synthetic_dataset: "qwen"
-    default_config: "configs/qwen_scale.yaml"
+    default_config: "eval/tegra/mmlu/configs/base.yaml"
     
   llama:
     indicators: ["llama", "Llama", "LLAMA"]
     synthetic_dataset: "llama" 
-    default_config: "configs/llama_scale.yaml"
+    default_config: "eval/tegra/mmlu/configs/base.yaml"
     
   deepseek:
     indicators: ["deepseek", "DeepSeek", "DEEPSEEK"]
     synthetic_dataset: "qwen" 
-    default_config: "configs/deepseek_scale.yaml"
+    default_config: "eval/tegra/mmlu/configs/base.yaml"
+    
+  # Base model display names (short form to match AWQ style)
+  dsr1-qwen-1.5b:
+    indicators: ["1.5B"]
+    display_name: "DSR1-Qwen-1.5B"
+    
+  dsr1-llama-8b:
+    indicators: ["8B"]
+    display_name: "DSR1-Llama-8B"
+    
+  dsr1-qwen-14b:
+    indicators: ["14B"]
+    display_name: "DSR1-Qwen-14B"
+    
+  # Quantized model families
+  dsr1-1.5b-awq:
+    indicators: ["DSR1-1.5B-llmc-awq-w4"]
+    synthetic_dataset: "qwen" 
+    default_config: "eval/tegra/mmlu/configs/prefill.yaml"
+    base_family: "qwen" 
+    display_name: "DSR1-1.5B-AWQ"
+    
+  dsr1-8b-awq:
+    indicators: ["DSR1-8B-llmc-awq-w4"]
+    synthetic_dataset: "llama" 
+    default_config: "eval/tegra/mmlu/configs/prefill.yaml"
+    base_family: "llama" 
+    display_name: "DSR1-8B-AWQ"
+    
+  dsr1-14b-awq:
+    indicators: ["DSR1-14B-llmc-awq-w4"]
+    synthetic_dataset: "qwen"
+    default_config: "eval/tegra/mmlu/configs/prefill.yaml"
+    base_family: "qwen" 
+    display_name: "DSR1-14B-AWQ"
+    
+  dsr1-32b-awq:
+    indicators: ["DSR1-32B-llmc-awq-w4"]
+    synthetic_dataset: "qwen"
+    default_config: "eval/tegra/mmlu/configs/prefill.yaml"
+    base_family: "qwen" 
+    display_name: "DSR1-32B-AWQ"
 
 # ===========================
 # Benchmark-Specific Settings
@@ -97,6 +139,7 @@ evaluation:
   default_configs:
     server: "eval/server/mmlu/configs/base.yaml"
     tegra: "eval/tegra/mmlu/configs/base.yaml"
+  default_config: "eval/tegra/mmlu/configs/base.yaml"
   default_seed: 42
   default_temperature: 0.1
   default_max_tokens: 512
