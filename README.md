@@ -9,6 +9,18 @@ source .venv/bin/activate    # Activate environment
 make setup                   # Auto-detect platform and install dependencies
 ```
 
+`make setup` will require `vllm==v0.10.0` and sometimes it shows no matching version can be found. 
+We can build vllm 0.10.0 from source by the following commands
+```bash
+git clone vllm
+git checkout v0.10.0
+export VLLM_COMMIT=6d8d0a24c02bfd84d46b3016b865a44f048ae84b 
+export VLLM_PRECOMPILED_WHEEL_LOCATION=https://files.pythonhosted.org/packages/a2/98/a9c7fd61e27fd766f3cb7022613b214f053836ba7749d12a4cd5ab4644fc/vllm-0.10.0-cp38-abi3-manylinux1_x86_64.whl
+uv pip install -e .
+uv pip install -e ".[server]"
+
+```
+
 ## Usage
 
 **Platform Detection:**
