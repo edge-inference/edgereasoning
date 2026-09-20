@@ -57,7 +57,7 @@ class NoReasoningEvaluator(BaseEvaluator):
             choice_d=question_data.choices[3]
         )
         
-        return f"{system_prompt}\n\n{user_prompt}"
+        return f"{system_prompt}\n\n{user_prompt}\n\nAssistant: <think> Okay I have finished thinking.</think>\n\nThe answer is"
     
     def _extract_direct_answer(self, response_text: str) -> Tuple[str, float]:
         """

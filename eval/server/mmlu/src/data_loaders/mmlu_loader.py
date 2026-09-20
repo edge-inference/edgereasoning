@@ -1,5 +1,5 @@
 """
-Professional MMLU-Redux dataset loader for performance evaluation.
+MMLU-Redux dataset loader for performance evaluation.
 
 This module provides clean, efficient loading and management of MMLU-Redux datasets
 with proper error handling and standardized question formatting.

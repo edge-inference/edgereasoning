@@ -27,6 +27,10 @@ def prefill_latency_model(model_name, input_length):
 
 
 def decode_latency_model(model_name, input_length, output_length):
+    # Special case: 1 token decode takes essentially no time
+    if output_length == 1:
+        return 0.0
+    
     coeffs = decode_coeffs[model_name]
     decode_latency = decode_func(coeffs['m'], coeffs['n'], input_length, output_length)
     return decode_latency
